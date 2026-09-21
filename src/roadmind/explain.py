@@ -16,6 +16,8 @@ from roadmind.config import MODELS_DIR, PROCESSED_DIR, REPORTS_DIR
 from roadmind.features import CATEGORICAL, FEATURES, TARGET, engineer
 from roadmind.preprocess import make_splits
 
+FLAGS_POI = {"junction", "traffic_signal", "crossing", "stop", "give_way", "railway", "roundabout", "station",
+             "amenity", "bump", "no_exit", "traffic_calming"}
 MODEL_PATH = MODELS_DIR / "stratified_xgboost.joblib"
 
 # Driver-facing wording for a feature that pushes risk UP. value -> phrase (None = not noteworthy).
@@ -117,7 +119,9 @@ def explain_prediction(input_dict: dict, top_k: int = 4) -> dict:
                         "description": _phrase(f, v) if given else f"{f.replace('_', ' ')} not provided (typical value assumed)",
                         "shap_log_odds": round(s, 4), "provided": given,
                         "direction": "raises risk" if s > 0 else "lowers risk"})
-    raising = [f["description"] for f in factors if f["shap_log_odds"] > 0 and f["provided"]]
+    # Road-feature flags are only quoted as a reason when the feature is present (not "no crossing nearby").
+    absent_poi = lambda f: f["feature"] in FLAGS_POI and not f["value"]
+    raising = [f["description"] for f in factors if f["shap_log_odds"] > 0 and f["provided"] and not absent_poi(f)]
     reasons = " • ".join(raising) if raising else "No single condition stands out"
     msg = f"{level.upper()} RISK\n{HEADLINE[level]}\nReasons: {reasons}\nSuggested response: {RESPONSE[level]}"
     return {"risk_level": level, "probability": round(p, 4), "top_factors": factors,
