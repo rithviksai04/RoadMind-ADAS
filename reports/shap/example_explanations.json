@@ -37,6 +37,7 @@
       }
     ],
     "suggested_message": "MEDIUM RISK\nModerate-risk conditions.\nReasons: Location (state TX) \u2022 Reduced visibility (0.5 mi)\nSuggested response: Stay alert and keep a safe following distance.",
+    "unprovided_inputs_shap_total": -0.0142,
     "notes": "Estimates P(high delay-impact | an accident occurs under these conditions), not P(accident). Decision-support only."
   },
   "clear_afternoon": {
@@ -68,15 +69,16 @@
         "direction": "lowers risk"
       },
       {
-        "feature": "pressure_in",
-        "value": null,
-        "description": "pressure in not provided (typical value assumed)",
-        "shap_log_odds": 0.1321,
-        "provided": false,
-        "direction": "raises risk"
+        "feature": "weather_group",
+        "value": "clear",
+        "description": "Weather: clear",
+        "shap_log_odds": -0.1155,
+        "provided": true,
+        "direction": "lowers risk"
       }
     ],
     "suggested_message": "HIGH RISK\nHigh-risk conditions: situations like this have historically been linked to high-impact accidents.\nReasons: Temperature (72 F) \u2022 Time of year (month 5)\nSuggested response: Reduce speed and increase following distance.",
+    "unprovided_inputs_shap_total": 0.1824,
     "notes": "Estimates P(high delay-impact | an accident occurs under these conditions), not P(accident). Decision-support only."
   },
   "icy_junction": {
@@ -117,6 +119,7 @@
       }
     ],
     "suggested_message": "MEDIUM RISK\nModerate-risk conditions.\nReasons: Road feature present: junction\nSuggested response: Stay alert and keep a safe following distance.",
+    "unprovided_inputs_shap_total": -0.0775,
     "notes": "Estimates P(high delay-impact | an accident occurs under these conditions), not P(accident). Decision-support only."
   }
 }

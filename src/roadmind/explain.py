@@ -94,6 +94,19 @@ def _aggregate(shap_row: np.ndarray, names: np.ndarray) -> dict[str, float]:
     return out
 
 
+def _provided_features(d: dict) -> set[str]:
+    """Model features backed by something the caller actually supplied (imputed/defaulted ones are excluded)."""
+    has = lambda k: d.get(k) is not None
+    out = {f for f in ["temperature_f", "humidity_pct", "pressure_in", "visibility_mi", "wind_speed_mph",
+                       "precipitation_in", "state"] if has(f)}
+    if has("weather_condition"):
+        out |= {"weather_group", "is_windy", "road_surface"}
+    if has("precipitation_in"):
+        out.add("road_surface")
+    out |= {"hour", "day_of_week", "month", "is_weekend", "is_rush_hour", "is_night"}  # always have a (default) time
+    return out | FLAGS_POI  # road features default to "absent", which is a legitimate input
+
+
 def explain_prediction(input_dict: dict, top_k: int = 4) -> dict:
     """input_dict keys (all optional; missing -> imputed like in training): weather_condition (e.g. 'Light Rain'),
     temperature_f, visibility_mi, wind_speed_mph, humidity_pct, pressure_in, precipitation_in, hour, day_of_week
@@ -110,14 +123,14 @@ def explain_prediction(input_dict: dict, top_k: int = 4) -> dict:
     level = "High" if p >= th["medium_high"] else "Medium" if p >= th["low_medium"] else "Low"
     sv = expl.shap_values(X)[0]
     agg = _aggregate(sv, names)
-    ranked = sorted(agg.items(), key=lambda kv: -abs(kv[1]))
+    given_feats = _provided_features(input_dict)
+    unprovided = {f: v for f, v in agg.items() if f not in given_feats}
+    ranked = sorted(((f, v) for f, v in agg.items() if f in given_feats), key=lambda kv: -abs(kv[1]))
     factors = []
     for f, s in ranked[:top_k]:
         v = feats.iloc[0][f]
-        given = not pd.isna(v)  # not supplied -> imputed typical value; never shown to the driver as a reason
-        factors.append({"feature": f, "value": (v.item() if hasattr(v, "item") else v) if given else None,
-                        "description": _phrase(f, v) if given else f"{f.replace('_', ' ')} not provided (typical value assumed)",
-                        "shap_log_odds": round(s, 4), "provided": given,
+        factors.append({"feature": f, "value": v.item() if hasattr(v, "item") else v,
+                        "description": _phrase(f, v), "shap_log_odds": round(s, 4), "provided": True,
                         "direction": "raises risk" if s > 0 else "lowers risk"})
     # Road-feature flags are only quoted as a reason when the feature is present (not "no crossing nearby").
     absent_poi = lambda f: f["feature"] in FLAGS_POI and not f["value"]
@@ -126,6 +139,7 @@ def explain_prediction(input_dict: dict, top_k: int = 4) -> dict:
     msg = f"{level.upper()} RISK\n{HEADLINE[level]}\nReasons: {reasons}\nSuggested response: {RESPONSE[level]}"
     return {"risk_level": level, "probability": round(p, 4), "top_factors": factors,
             "suggested_message": msg,
+            "unprovided_inputs_shap_total": round(sum(unprovided.values()), 4),
             "notes": "Estimates P(high delay-impact | an accident occurs under these conditions), not P(accident). "
                      "Decision-support only."}
 

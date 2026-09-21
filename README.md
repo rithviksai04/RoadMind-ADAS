@@ -92,7 +92,7 @@ python -m roadmind.cli --weather Fog --visibility 0.5 --hour 23 --state TX --tem
 Programmatic: `from roadmind.explain import explain_prediction` returns
 `{risk_level, probability, top_factors, suggested_message, notes}`. The message follows the proposal's format
 (risk level, reasons, suggested response). Reasons are limited to features that exist in the data - no "high speed" or "heavy traffic".
-Un-supplied inputs are imputed and are never quoted as reasons.
+Inputs you did not supply are imputed by the model but are excluded from the factor list and the reasons (their combined SHAP contribution is returned as `unprovided_inputs_shap_total`).
 
 ## Project layout
 ```
