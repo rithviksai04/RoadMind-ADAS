@@ -1,0 +1,16 @@
+[
+  {"id": "S01_clear_midday_ca",   "why": "Ordinary good-weather daytime drive", "input": {"weather_condition": "Fair", "temperature_f": 72, "visibility_mi": 10, "wind_speed_mph": 5, "precipitation_in": 0, "humidity_pct": 45, "pressure_in": 29.9, "hour": 14, "day_of_week": 2, "month": 5, "state": "CA"}},
+  {"id": "S02_night_fog_tx",      "why": "Night-time dense fog, very low visibility", "input": {"weather_condition": "Fog", "temperature_f": 45, "visibility_mi": 0.5, "precipitation_in": 0.05, "hour": 23, "day_of_week": 4, "month": 11, "state": "TX"}},
+  {"id": "S03_snow_junction_ny",  "why": "Icy morning commute at a signalised junction", "input": {"weather_condition": "Light Snow", "temperature_f": 28, "visibility_mi": 2, "precipitation_in": 0.02, "hour": 7, "day_of_week": 0, "month": 1, "state": "NY", "junction": true, "traffic_signal": true}},
+  {"id": "S04_heavy_rain_fl",     "why": "Heavy rain at evening rush hour", "input": {"weather_condition": "Heavy Rain", "temperature_f": 78, "visibility_mi": 2, "precipitation_in": 0.4, "humidity_pct": 95, "hour": 17, "day_of_week": 3, "month": 8, "state": "FL"}},
+  {"id": "S05_thunderstorm_ga",   "why": "Thunderstorm with wind", "input": {"weather_condition": "Thunderstorm", "temperature_f": 82, "visibility_mi": 3, "wind_speed_mph": 25, "precipitation_in": 0.3, "hour": 16, "day_of_week": 5, "month": 7, "state": "GA"}},
+  {"id": "S06_weekend_night_il",  "why": "Saturday 2am clear, urban state", "input": {"weather_condition": "Clear", "temperature_f": 55, "visibility_mi": 10, "hour": 2, "day_of_week": 5, "month": 9, "state": "IL"}},
+  {"id": "S07_crossing_stop_pa",  "why": "Road features present (crossing + stop sign)", "input": {"weather_condition": "Cloudy", "temperature_f": 60, "hour": 12, "day_of_week": 2, "month": 4, "state": "PA", "crossing": true, "stop": true}},
+  {"id": "S08_freezing_rain_mn",  "why": "Freezing rain below 32F", "input": {"weather_condition": "Freezing Rain", "temperature_f": 29, "visibility_mi": 4, "precipitation_in": 0.1, "hour": 6, "day_of_week": 1, "month": 12, "state": "MN"}},
+  {"id": "S09_only_state",        "why": "Minimal input - only a state", "input": {"state": "CA"}},
+  {"id": "S10_empty",             "why": "Empty input must not crash", "input": {}},
+  {"id": "S11_bad_values",        "why": "Impossible sensor values are treated as missing", "input": {"weather_condition": "Fair", "temperature_f": 999, "visibility_mi": -5, "wind_speed_mph": 5000, "state": "AZ"}},
+  {"id": "S12_unknown_state_wx",  "why": "Unseen state code + unusual weather text", "input": {"weather_condition": "Volcanic Ash", "state": "ZZ", "hour": 10}},
+  {"id": "S13_haze_smoke_or",     "why": "Smoke / haze (wildfire season)", "input": {"weather_condition": "Smoke", "visibility_mi": 1.5, "temperature_f": 88, "hour": 15, "month": 9, "state": "OR"}},
+  {"id": "S14_windy_clear_az",    "why": "Windy but dry", "input": {"weather_condition": "Fair / Windy", "wind_speed_mph": 35, "temperature_f": 95, "hour": 13, "month": 6, "state": "AZ"}}
+]

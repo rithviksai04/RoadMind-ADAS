@@ -1,0 +1,58 @@
+{
+  "S01_clear_midday_ca": {
+    "risk_level": "Medium",
+    "probability": 0.2153
+  },
+  "S02_night_fog_tx": {
+    "risk_level": "Medium",
+    "probability": 0.2018
+  },
+  "S03_snow_junction_ny": {
+    "risk_level": "Medium",
+    "probability": 0.1787
+  },
+  "S04_heavy_rain_fl": {
+    "risk_level": "High",
+    "probability": 0.2646
+  },
+  "S05_thunderstorm_ga": {
+    "risk_level": "High",
+    "probability": 0.8387
+  },
+  "S06_weekend_night_il": {
+    "risk_level": "High",
+    "probability": 0.5444
+  },
+  "S07_crossing_stop_pa": {
+    "risk_level": "Low",
+    "probability": 0.0408
+  },
+  "S08_freezing_rain_mn": {
+    "risk_level": "Medium",
+    "probability": 0.2008
+  },
+  "S09_only_state": {
+    "risk_level": "High",
+    "probability": 0.2427
+  },
+  "S10_empty": {
+    "risk_level": "High",
+    "probability": 0.2939
+  },
+  "S11_bad_values": {
+    "risk_level": "High",
+    "probability": 0.2838
+  },
+  "S12_unknown_state_wx": {
+    "risk_level": "High",
+    "probability": 0.2965
+  },
+  "S13_haze_smoke_or": {
+    "risk_level": "High",
+    "probability": 0.2493
+  },
+  "S14_windy_clear_az": {
+    "risk_level": "High",
+    "probability": 0.3021
+  }
+}

@@ -9,3 +9,4 @@ kaggle.json
 .kaggle/
 models/*.joblib
 .ipynb_checkpoints/
+data/external/

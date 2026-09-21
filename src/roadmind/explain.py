@@ -124,6 +124,8 @@ def explain_prediction(input_dict: dict, top_k: int = 4) -> dict:
     sv = expl.shap_values(X)[0]
     agg = _aggregate(sv, names)
     given_feats = _provided_features(input_dict)
+    # supplied but invalid (e.g. temperature 999 -> NaN after the plausibility check) counts as un-supplied
+    given_feats = {f for f in given_feats if not pd.isna(feats.iloc[0][f])}
     unprovided = {f: v for f, v in agg.items() if f not in given_feats}
     ranked = sorted(((f, v) for f, v in agg.items() if f in given_feats), key=lambda kv: -abs(kv[1]))
     factors = []
