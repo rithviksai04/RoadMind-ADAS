@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+data/raw/
+data/processed/
+*.csv
+*.zip
+kaggle.json
+.kaggle/
+models/*.joblib
+.ipynb_checkpoints/

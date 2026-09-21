@@ -1,0 +1,8 @@
+[project]
+name = "roadmind"
+version = "0.1.0"
+description = "Explainable predictive road-risk co-pilot (ADAS research prototype)"
+requires-python = ">=3.11"
+
+[tool.setuptools.packages.find]
+where = ["src"]
