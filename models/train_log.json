@@ -1,34 +1,34 @@
 {
   "stratified/logreg": {
-    "low_medium": 0.11499772554370714,
-    "medium_high": 0.2219170001946891,
-    "train_secs": 17.1
+    "low_medium": 0.14061111028426976,
+    "medium_high": 0.21942465443268686,
+    "train_secs": 20.3
   },
   "stratified/random_forest": {
-    "low_medium": 0.11429912956453665,
-    "medium_high": 0.21229819376157313,
-    "train_secs": 93.8
+    "low_medium": 0.13698181359749803,
+    "medium_high": 0.22687441633479782,
+    "train_secs": 101.7
   },
   "stratified/xgboost": {
-    "low_medium": 0.09342267364263535,
-    "medium_high": 0.21298793454964957,
-    "train_secs": 30.2,
-    "xgb_trees": 594
+    "low_medium": 0.11075854301452637,
+    "medium_high": 0.2276833007733027,
+    "train_secs": 39.4,
+    "xgb_trees": 732
   },
   "time/logreg": {
-    "low_medium": 0.15238616680922493,
-    "medium_high": 0.28958267810475125,
-    "train_secs": 18.8
+    "low_medium": 0.17358905794562338,
+    "medium_high": 0.2803551847823944,
+    "train_secs": 21.0
   },
   "time/random_forest": {
-    "low_medium": 0.1490512458126728,
-    "medium_high": 0.29775504964629695,
-    "train_secs": 77.9
+    "low_medium": 0.17209221277491554,
+    "medium_high": 0.2907935524638352,
+    "train_secs": 88.9
   },
   "time/xgboost": {
-    "low_medium": 0.12271248549222946,
-    "medium_high": 0.2984901070594788,
-    "train_secs": 24.8,
-    "xgb_trees": 693
+    "low_medium": 0.14072369039058688,
+    "medium_high": 0.29581767320632935,
+    "train_secs": 25.0,
+    "xgb_trees": 616
   }
 }

@@ -5,129 +5,129 @@
     "models": {
       "logreg": {
         "thresholds": {
-          "low_medium": 0.11499772554370714,
-          "medium_high": 0.2219170001946891
+          "low_medium": 0.14061111028426976,
+          "medium_high": 0.21942465443268686
         },
-        "roc_auc": 0.7415975561633257,
-        "pr_auc": 0.40284407381664483,
-        "brier": 0.13797012462464178,
+        "roc_auc": 0.706572574898487,
+        "pr_auc": 0.3698741987293551,
+        "brier": 0.14300593029750097,
         "brier_baseline_constant": 0.15707641969055675,
-        "mean_predicted": 0.1959847740419411,
+        "mean_predicted": 0.1958732658476394,
         "high_tier": {
-          "accuracy": 0.716036221341494,
-          "precision": 0.3677624206200971,
-          "recall": 0.6326714221451064,
-          "f1": 0.4651437480806029,
+          "accuracy": 0.6908016856469171,
+          "precision": 0.3299925205684368,
+          "recall": 0.5670586723218303,
+          "f1": 0.41720053899435,
           "confusion": {
-            "tn": 47246,
-            "fp": 16925,
-            "fn": 5716,
-            "tp": 9845
+            "tn": 46255,
+            "fp": 17916,
+            "fn": 6737,
+            "tp": 8824
           }
         },
-        "medium_plus_recall": 0.8808559861191441,
+        "medium_plus_recall": 0.8621553884711779,
         "tiers": {
           "Low": {
-            "n": 26385,
-            "share_of_test": 0.33092108563688355,
-            "observed_high_impact_rate": 0.0702671972711768
+            "n": 26234,
+            "share_of_test": 0.32902724125821503,
+            "observed_high_impact_rate": 0.0817641228939544
           },
           "Medium": {
-            "n": 26577,
-            "share_of_test": 0.3333291526614157,
-            "observed_high_impact_rate": 0.14531361703728787
+            "n": 26758,
+            "share_of_test": 0.33559925751266745,
+            "observed_high_impact_rate": 0.17161222811869348
           },
           "High": {
-            "n": 26770,
-            "share_of_test": 0.3357497617017007,
-            "observed_high_impact_rate": 0.3677624206200971
+            "n": 26740,
+            "share_of_test": 0.3353735012291175,
+            "observed_high_impact_rate": 0.3299925205684368
           }
         },
-        "tier_lift_high_vs_base": 1.8843540467117528
+        "tier_lift_high_vs_base": 1.6908273022275306
       },
       "random_forest": {
         "thresholds": {
-          "low_medium": 0.11429912956453665,
-          "medium_high": 0.21229819376157313
+          "low_medium": 0.13698181359749803,
+          "medium_high": 0.22687441633479782
         },
-        "roc_auc": 0.7715125051792951,
-        "pr_auc": 0.45542060627325914,
-        "brier": 0.13260029189659436,
+        "roc_auc": 0.7421600543870892,
+        "pr_auc": 0.4112749030310483,
+        "brier": 0.13875931857355814,
         "brier_baseline_constant": 0.15707641969055675,
-        "mean_predicted": 0.195746673909958,
+        "mean_predicted": 0.19555789393472223,
         "high_tier": {
-          "accuracy": 0.7281518085586716,
-          "precision": 0.3850319669048515,
-          "recall": 0.6579268684531843,
-          "f1": 0.4857773243813907,
+          "accuracy": 0.7096523353233332,
+          "precision": 0.3573978729001466,
+          "recall": 0.6111432427221901,
+          "f1": 0.451031539008774,
           "confusion": {
-            "tn": 47819,
-            "fp": 16352,
-            "fn": 5323,
-            "tp": 10238
+            "tn": 47072,
+            "fp": 17099,
+            "fn": 6051,
+            "tp": 9510
           }
         },
-        "medium_plus_recall": 0.9042477989846411,
+        "medium_plus_recall": 0.8883747831116252,
         "tiers": {
           "Low": {
-            "n": 27275,
-            "share_of_test": 0.34208347965685043,
-            "observed_high_impact_rate": 0.05462878093492209
+            "n": 27041,
+            "share_of_test": 0.3391486479707019,
+            "observed_high_impact_rate": 0.0642357900965201
           },
           "Medium": {
-            "n": 25867,
-            "share_of_test": 0.3244243214769478,
-            "observed_high_impact_rate": 0.14818108014071985
+            "n": 26082,
+            "share_of_test": 0.3271208548637937,
+            "observed_high_impact_rate": 0.1654014262709915
           },
           "High": {
-            "n": 26590,
-            "share_of_test": 0.3334921988662018,
-            "observed_high_impact_rate": 0.3850319669048515
+            "n": 26609,
+            "share_of_test": 0.33373049716550446,
+            "observed_high_impact_rate": 0.3573978729001466
           }
         },
-        "tier_lift_high_vs_base": 1.9728403563561223
+        "tier_lift_high_vs_base": 1.8312478119705988
       },
       "xgboost": {
         "thresholds": {
-          "low_medium": 0.09342267364263535,
-          "medium_high": 0.21298793454964957
+          "low_medium": 0.11075854301452637,
+          "medium_high": 0.2276833007733027
         },
-        "roc_auc": 0.7814672248889543,
-        "pr_auc": 0.4737998449320467,
-        "brier": 0.12953339517116547,
+        "roc_auc": 0.7537912279236653,
+        "pr_auc": 0.4311421802998756,
+        "brier": 0.13544826209545135,
         "brier_baseline_constant": 0.1570764183998108,
-        "mean_predicted": 0.19578802585601807,
+        "mean_predicted": 0.1956125795841217,
         "high_tier": {
-          "accuracy": 0.7331184467967692,
-          "precision": 0.39257533628917113,
-          "recall": 0.6714221451063557,
-          "f1": 0.4954593953764078,
+          "accuracy": 0.715760296994933,
+          "precision": 0.3661918758007386,
+          "recall": 0.6245099929310456,
+          "f1": 0.4616736739590014,
           "confusion": {
-            "tn": 48005,
-            "fp": 16166,
-            "fn": 5113,
-            "tp": 10448
+            "tn": 47351,
+            "fp": 16820,
+            "fn": 5843,
+            "tp": 9718
           }
         },
-        "medium_plus_recall": 0.9176145491934966,
+        "medium_plus_recall": 0.9053402737613264,
         "tiers": {
           "Low": {
-            "n": 26193,
-            "share_of_test": 0.3285130186123514,
-            "observed_high_impact_rate": 0.04894437445118925
+            "n": 26255,
+            "share_of_test": 0.3292906235890232,
+            "observed_high_impact_rate": 0.0561035993144163
           },
           "Medium": {
-            "n": 26925,
-            "share_of_test": 0.3376937741433803,
-            "observed_high_impact_rate": 0.1422841225626741
+            "n": 26939,
+            "share_of_test": 0.3378693623639191,
+            "observed_high_impact_rate": 0.16221834515015404
           },
           "High": {
-            "n": 26614,
-            "share_of_test": 0.3337932072442683,
-            "observed_high_impact_rate": 0.39257533628917113
+            "n": 26538,
+            "share_of_test": 0.33284001404705765,
+            "observed_high_impact_rate": 0.3661918758007386
           }
         },
-        "tier_lift_high_vs_base": 2.0114913381536015
+        "tier_lift_high_vs_base": 1.8763068338374456
       }
     }
   },
@@ -137,129 +137,129 @@
     "models": {
       "logreg": {
         "thresholds": {
-          "low_medium": 0.15238616680922493,
-          "medium_high": 0.28958267810475125
+          "low_medium": 0.17358905794562338,
+          "medium_high": 0.2803551847823944
         },
-        "roc_auc": 0.6437125923330933,
-        "pr_auc": 0.1120072226890168,
-        "brier": 0.08609303521177111,
+        "roc_auc": 0.6360907784018519,
+        "pr_auc": 0.11372632058719392,
+        "brier": 0.09998583691190649,
         "brier_baseline_constant": 0.05999504516203401,
-        "mean_predicted": 0.2058404562993004,
+        "mean_predicted": 0.2423580589839131,
         "high_tier": {
-          "accuracy": 0.7780064345960986,
-          "precision": 0.11853408029878618,
-          "recall": 0.38266767143933683,
-          "f1": 0.18100160399215826,
+          "accuracy": 0.6678840226853328,
+          "precision": 0.09971139971139971,
+          "recall": 0.520723436322532,
+          "f1": 0.16737313794356304,
           "confusion": {
-            "tn": 77987,
-            "fp": 18881,
-            "fn": 4096,
-            "tp": 2539
+            "tn": 65673,
+            "fp": 31195,
+            "fn": 3180,
+            "tp": 3455
           }
         },
-        "medium_plus_recall": 0.7983421250941974,
+        "medium_plus_recall": 0.8168801808590807,
         "tiers": {
           "Low": {
-            "n": 36354,
-            "share_of_test": 0.35123619605228834,
-            "observed_high_impact_rate": 0.0368047532596138
+            "n": 31413,
+            "share_of_test": 0.30349844932030956,
+            "observed_high_impact_rate": 0.03867825422595741
           },
           "Medium": {
-            "n": 45729,
-            "share_of_test": 0.4418132807744703,
-            "observed_high_impact_rate": 0.06031183712742461
+            "n": 37440,
+            "share_of_test": 0.3617286455465059,
+            "observed_high_impact_rate": 0.05248397435897436
           },
           "High": {
-            "n": 21420,
-            "share_of_test": 0.20695052317324136,
-            "observed_high_impact_rate": 0.11853408029878618
+            "n": 34650,
+            "share_of_test": 0.33477290513318453,
+            "observed_high_impact_rate": 0.09971139971139971
           }
         },
-        "tier_lift_high_vs_base": 1.849078057749098
+        "tier_lift_high_vs_base": 1.5554527512176344
       },
       "random_forest": {
         "thresholds": {
-          "low_medium": 0.1490512458126728,
-          "medium_high": 0.29775504964629695
+          "low_medium": 0.17209221277491554,
+          "medium_high": 0.2907935524638352
         },
-        "roc_auc": 0.6757188022613546,
-        "pr_auc": 0.12639361911876293,
-        "brier": 0.0833530855176848,
+        "roc_auc": 0.6602570589226853,
+        "pr_auc": 0.11950476146746941,
+        "brier": 0.0964149213195611,
         "brier_baseline_constant": 0.05999504516203401,
-        "mean_predicted": 0.20568627644059487,
+        "mean_predicted": 0.2408129077992724,
         "high_tier": {
-          "accuracy": 0.8029332483116431,
-          "precision": 0.13045112781954887,
-          "recall": 0.36608892238131124,
-          "f1": 0.19235794892100574,
+          "accuracy": 0.6965015506796904,
+          "precision": 0.1080918638491712,
+          "recall": 0.5149962321024868,
+          "f1": 0.17868068083771277,
           "confusion": {
-            "tn": 80677,
-            "fp": 16191,
-            "fn": 4206,
-            "tp": 2429
+            "tn": 68673,
+            "fp": 28195,
+            "fn": 3218,
+            "tp": 3417
           }
         },
-        "medium_plus_recall": 0.8394875659382065,
+        "medium_plus_recall": 0.853353428786737,
         "tiers": {
           "Low": {
-            "n": 36666,
-            "share_of_test": 0.35425060143184256,
-            "observed_high_impact_rate": 0.029045982654230078
+            "n": 31752,
+            "share_of_test": 0.30677371670386366,
+            "observed_high_impact_rate": 0.03064373897707231
           },
           "Medium": {
-            "n": 48217,
-            "share_of_test": 0.46585123136527445,
-            "observed_high_impact_rate": 0.06514299935707323
+            "n": 40139,
+            "share_of_test": 0.3878051843907906,
+            "observed_high_impact_rate": 0.055930641022447
           },
           "High": {
-            "n": 18620,
-            "share_of_test": 0.179898167202883,
-            "observed_high_impact_rate": 0.13045112781954887
+            "n": 31612,
+            "share_of_test": 0.30542109890534574,
+            "observed_high_impact_rate": 0.1080918638491712
           }
         },
-        "tier_lift_high_vs_base": 2.0349786108073498
+        "tier_lift_high_vs_base": 1.6861842025592715
       },
       "xgboost": {
         "thresholds": {
-          "low_medium": 0.12271248549222946,
-          "medium_high": 0.2984901070594788
+          "low_medium": 0.14072369039058688,
+          "medium_high": 0.29581767320632935
         },
-        "roc_auc": 0.6830292235871971,
-        "pr_auc": 0.1278135273400297,
-        "brier": 0.08690191060304642,
+        "roc_auc": 0.6654309320596282,
+        "pr_auc": 0.1195292491699361,
+        "brier": 0.0999830961227417,
         "brier_baseline_constant": 0.05999504402279854,
-        "mean_predicted": 0.1982986330986023,
+        "mean_predicted": 0.23124265670776367,
         "high_tier": {
-          "accuracy": 0.7899481174458711,
-          "precision": 0.13242164687560834,
-          "recall": 0.4100979653353429,
-          "f1": 0.2001986535702461,
+          "accuracy": 0.7071775697322783,
+          "precision": 0.1112680219383231,
+          "recall": 0.5106254709871891,
+          "f1": 0.18272031064610075,
           "confusion": {
-            "tn": 79041,
-            "fp": 17827,
-            "fn": 3914,
-            "tp": 2721
+            "tn": 69807,
+            "fp": 27061,
+            "fn": 3247,
+            "tp": 3388
           }
         },
-        "medium_plus_recall": 0.8471740768651093,
+        "medium_plus_recall": 0.8525998492840995,
         "tiers": {
           "Low": {
-            "n": 36522,
-            "share_of_test": 0.35285933741050984,
-            "observed_high_impact_rate": 0.02776408739937572
+            "n": 32971,
+            "share_of_test": 0.31855115310667326,
+            "observed_high_impact_rate": 0.029662430620848626
           },
           "Medium": {
-            "n": 46433,
-            "share_of_test": 0.4486150159898747,
-            "observed_high_impact_rate": 0.062455581159950896
+            "n": 40083,
+            "share_of_test": 0.3872641372713834,
+            "observed_high_impact_rate": 0.056607539355836636
           },
           "High": {
-            "n": 20548,
-            "share_of_test": 0.19852564659961547,
-            "observed_high_impact_rate": 0.13242164687560834
+            "n": 30449,
+            "share_of_test": 0.2941847096219433,
+            "observed_high_impact_rate": 0.1112680219383231
           }
         },
-        "tier_lift_high_vs_base": 2.0657178171162154
+        "tier_lift_high_vs_base": 1.7357308326574612
       }
     }
   }

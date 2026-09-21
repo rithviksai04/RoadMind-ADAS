@@ -1,0 +1,122 @@
+{
+  "night_wet_fog": {
+    "risk_level": "Medium",
+    "probability": 0.1824,
+    "top_factors": [
+      {
+        "feature": "month",
+        "value": 11,
+        "description": "Time of year (month 11)",
+        "shap_log_odds": -0.3766,
+        "provided": true,
+        "direction": "lowers risk"
+      },
+      {
+        "feature": "hour",
+        "value": 23,
+        "description": "Time of day (23:00)",
+        "shap_log_odds": -0.3518,
+        "provided": true,
+        "direction": "lowers risk"
+      },
+      {
+        "feature": "state",
+        "value": "TX",
+        "description": "Location (state TX)",
+        "shap_log_odds": 0.235,
+        "provided": true,
+        "direction": "raises risk"
+      },
+      {
+        "feature": "visibility_mi",
+        "value": 0.5,
+        "description": "Reduced visibility (0.5 mi)",
+        "shap_log_odds": 0.2272,
+        "provided": true,
+        "direction": "raises risk"
+      }
+    ],
+    "suggested_message": "MEDIUM RISK\nModerate-risk conditions.\nReasons: Location (state TX) \u2022 Reduced visibility (0.5 mi)\nSuggested response: Stay alert and keep a safe following distance.",
+    "notes": "Estimates P(high delay-impact | an accident occurs under these conditions), not P(accident). Decision-support only."
+  },
+  "clear_afternoon": {
+    "risk_level": "High",
+    "probability": 0.2578,
+    "top_factors": [
+      {
+        "feature": "temperature_f",
+        "value": 72.0,
+        "description": "Temperature (72 F)",
+        "shap_log_odds": 0.2334,
+        "provided": true,
+        "direction": "raises risk"
+      },
+      {
+        "feature": "month",
+        "value": 5,
+        "description": "Time of year (month 5)",
+        "shap_log_odds": 0.2118,
+        "provided": true,
+        "direction": "raises risk"
+      },
+      {
+        "feature": "state",
+        "value": "CA",
+        "description": "Location (state CA)",
+        "shap_log_odds": -0.1525,
+        "provided": true,
+        "direction": "lowers risk"
+      },
+      {
+        "feature": "pressure_in",
+        "value": null,
+        "description": "pressure in not provided (typical value assumed)",
+        "shap_log_odds": 0.1321,
+        "provided": false,
+        "direction": "raises risk"
+      }
+    ],
+    "suggested_message": "HIGH RISK\nHigh-risk conditions: situations like this have historically been linked to high-impact accidents.\nReasons: Temperature (72 F) \u2022 Time of year (month 5)\nSuggested response: Reduce speed and increase following distance.",
+    "notes": "Estimates P(high delay-impact | an accident occurs under these conditions), not P(accident). Decision-support only."
+  },
+  "icy_junction": {
+    "risk_level": "Medium",
+    "probability": 0.1787,
+    "top_factors": [
+      {
+        "feature": "junction",
+        "value": 1,
+        "description": "Road feature present: junction",
+        "shap_log_odds": 0.5167,
+        "provided": true,
+        "direction": "raises risk"
+      },
+      {
+        "feature": "traffic_signal",
+        "value": 1,
+        "description": "Road feature present: traffic signal",
+        "shap_log_odds": -0.4397,
+        "provided": true,
+        "direction": "lowers risk"
+      },
+      {
+        "feature": "month",
+        "value": 1,
+        "description": "Time of year (month 1)",
+        "shap_log_odds": -0.2208,
+        "provided": true,
+        "direction": "lowers risk"
+      },
+      {
+        "feature": "temperature_f",
+        "value": 28.0,
+        "description": "Temperature (28 F)",
+        "shap_log_odds": -0.1434,
+        "provided": true,
+        "direction": "lowers risk"
+      }
+    ],
+    "suggested_message": "MEDIUM RISK\nModerate-risk conditions.\nReasons: Road feature present: junction\nSuggested response: Stay alert and keep a safe following distance.",
+    "notes": "Estimates P(high delay-impact | an accident occurs under these conditions), not P(accident). Decision-support only."
+  }
+}

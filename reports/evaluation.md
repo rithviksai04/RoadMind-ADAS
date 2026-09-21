@@ -10,9 +10,9 @@ Test rows: 79,732. Observed high-impact rate in the test set: **19.5%**.
 
 | Model | ROC-AUC | PR-AUC | Brier | Brier (constant base rate) | Mean predicted P |
 |---|---|---|---|---|---|
-| Logistic Regression | 0.742 | 0.403 | 0.1380 | 0.1571 | 0.196 |
-| Random Forest | 0.772 | 0.455 | 0.1326 | 0.1571 | 0.196 |
-| XGBoost | 0.781 | 0.474 | 0.1295 | 0.1571 | 0.196 |
+| Logistic Regression | 0.707 | 0.370 | 0.1430 | 0.1571 | 0.196 |
+| Random Forest | 0.742 | 0.411 | 0.1388 | 0.1571 | 0.196 |
+| XGBoost | 0.754 | 0.431 | 0.1354 | 0.1571 | 0.196 |
 
 PR-AUC of a random ranker = the base rate above.
 
@@ -20,25 +20,25 @@ PR-AUC of a random ranker = the base rate above.
 
 | Model | Accuracy | Precision | **Recall (High-risk class)** | F1 | Recall if Medium+High flagged |
 |---|---|---|---|---|---|
-| Logistic Regression | 0.716 | 0.368 | **0.633** | 0.465 | 0.881 |
-| Random Forest | 0.728 | 0.385 | **0.658** | 0.486 | 0.904 |
-| XGBoost | 0.733 | 0.393 | **0.671** | 0.495 | 0.918 |
+| Logistic Regression | 0.691 | 0.330 | **0.567** | 0.417 | 0.862 |
+| Random Forest | 0.710 | 0.357 | **0.611** | 0.451 | 0.888 |
+| XGBoost | 0.716 | 0.366 | **0.625** | 0.462 | 0.905 |
 
 ### Confusion matrices (High tier vs actual Severity 3-4)
 
 | Model | TN | FP | FN | TP |
 |---|---|---|---|---|
-| Logistic Regression | 47,246 | 16,925 | 5,716 | 9,845 |
-| Random Forest | 47,819 | 16,352 | 5,323 | 10,238 |
-| XGBoost | 48,005 | 16,166 | 5,113 | 10,448 |
+| Logistic Regression | 46,255 | 17,916 | 6,737 | 8,824 |
+| Random Forest | 47,072 | 17,099 | 6,051 | 9,510 |
+| XGBoost | 47,351 | 16,820 | 5,843 | 9,718 |
 
 ### Risk-tier thresholds (from training data) and observed high-impact rate per tier on the test set
 
 | Model | Low/Medium cut | Medium/High cut | Low tier | Medium tier | High tier | High-tier lift vs base rate |
 |---|---|---|---|---|---|---|
-| Logistic Regression | 0.1150 | 0.2219 | 7.0% (33% of rows) | 14.5% (33% of rows) | 36.8% (34% of rows) | 1.88x |
-| Random Forest | 0.1143 | 0.2123 | 5.5% (34% of rows) | 14.8% (32% of rows) | 38.5% (33% of rows) | 1.97x |
-| XGBoost | 0.0934 | 0.2130 | 4.9% (33% of rows) | 14.2% (34% of rows) | 39.3% (33% of rows) | 2.01x |
+| Logistic Regression | 0.1406 | 0.2194 | 8.2% (33% of rows) | 17.2% (34% of rows) | 33.0% (34% of rows) | 1.69x |
+| Random Forest | 0.1370 | 0.2269 | 6.4% (34% of rows) | 16.5% (33% of rows) | 35.7% (33% of rows) | 1.83x |
+| XGBoost | 0.1108 | 0.2277 | 5.6% (33% of rows) | 16.2% (34% of rows) | 36.6% (33% of rows) | 1.88x |
 
 Plots: `reports/eval/roc_stratified.png`, `reports/eval/confusion_stratified.png`
 
@@ -50,9 +50,9 @@ Test rows: 103,503. Observed high-impact rate in the test set: **6.4%**.
 
 | Model | ROC-AUC | PR-AUC | Brier | Brier (constant base rate) | Mean predicted P |
 |---|---|---|---|---|---|
-| Logistic Regression | 0.644 | 0.112 | 0.0861 | 0.0600 | 0.206 |
-| Random Forest | 0.676 | 0.126 | 0.0834 | 0.0600 | 0.206 |
-| XGBoost | 0.683 | 0.128 | 0.0869 | 0.0600 | 0.198 |
+| Logistic Regression | 0.636 | 0.114 | 0.1000 | 0.0600 | 0.242 |
+| Random Forest | 0.660 | 0.120 | 0.0964 | 0.0600 | 0.241 |
+| XGBoost | 0.665 | 0.120 | 0.1000 | 0.0600 | 0.231 |
 
 PR-AUC of a random ranker = the base rate above.
 
@@ -60,48 +60,67 @@ PR-AUC of a random ranker = the base rate above.
 
 | Model | Accuracy | Precision | **Recall (High-risk class)** | F1 | Recall if Medium+High flagged |
 |---|---|---|---|---|---|
-| Logistic Regression | 0.778 | 0.119 | **0.383** | 0.181 | 0.798 |
-| Random Forest | 0.803 | 0.130 | **0.366** | 0.192 | 0.839 |
-| XGBoost | 0.790 | 0.132 | **0.410** | 0.200 | 0.847 |
+| Logistic Regression | 0.668 | 0.100 | **0.521** | 0.167 | 0.817 |
+| Random Forest | 0.697 | 0.108 | **0.515** | 0.179 | 0.853 |
+| XGBoost | 0.707 | 0.111 | **0.511** | 0.183 | 0.853 |
 
 ### Confusion matrices (High tier vs actual Severity 3-4)
 
 | Model | TN | FP | FN | TP |
 |---|---|---|---|---|
-| Logistic Regression | 77,987 | 18,881 | 4,096 | 2,539 |
-| Random Forest | 80,677 | 16,191 | 4,206 | 2,429 |
-| XGBoost | 79,041 | 17,827 | 3,914 | 2,721 |
+| Logistic Regression | 65,673 | 31,195 | 3,180 | 3,455 |
+| Random Forest | 68,673 | 28,195 | 3,218 | 3,417 |
+| XGBoost | 69,807 | 27,061 | 3,247 | 3,388 |
 
 ### Risk-tier thresholds (from training data) and observed high-impact rate per tier on the test set
 
 | Model | Low/Medium cut | Medium/High cut | Low tier | Medium tier | High tier | High-tier lift vs base rate |
 |---|---|---|---|---|---|---|
-| Logistic Regression | 0.1524 | 0.2896 | 3.7% (35% of rows) | 6.0% (44% of rows) | 11.9% (21% of rows) | 1.85x |
-| Random Forest | 0.1491 | 0.2978 | 2.9% (35% of rows) | 6.5% (47% of rows) | 13.0% (18% of rows) | 2.03x |
-| XGBoost | 0.1227 | 0.2985 | 2.8% (35% of rows) | 6.2% (45% of rows) | 13.2% (20% of rows) | 2.07x |
+| Logistic Regression | 0.1736 | 0.2804 | 3.9% (30% of rows) | 5.2% (36% of rows) | 10.0% (33% of rows) | 1.56x |
+| Random Forest | 0.1721 | 0.2908 | 3.1% (31% of rows) | 5.6% (39% of rows) | 10.8% (31% of rows) | 1.69x |
+| XGBoost | 0.1407 | 0.2958 | 3.0% (32% of rows) | 5.7% (39% of rows) | 11.1% (29% of rows) | 1.74x |
 
 Plots: `reports/eval/roc_time.png`, `reports/eval/confusion_time.png`
 
 
 ## Interpretation (written by hand from the numbers above - read this before quoting any metric)
 
-**Bottom line: the models have modest, real predictive signal. They are not strong.**
+**Bottom line: the models have modest but real predictive signal. They are not strong, and most of the signal is
+location and road-annotation information, not weather.**
 
-- **Best model on the primary split is XGBoost:** ROC-AUC 0.781 and PR-AUC 0.474 (random ranker: 0.195). It beats Random Forest (0.772) and Logistic Regression (0.742).
-  The gap between models is small, which suggests the ceiling is set by the information in the features, not by the model class.
-- **What the tiers mean in practice (XGBoost, primary split):** among test accidents placed in the *High* tier, 39.3% were high-impact (Severity 3-4).
-  In the *Low* tier it was 4.9%, against 19.5% overall. That is a ~2x lift in the High tier and a ~4x reduction in the Low tier.
-  The High tier is still wrong about 6 times in 10.
-- **Recall for the High-risk class:** XGBoost catches **67.1%** of high-impact accidents by flagging the top third of predictions. That leaves **32.9% missed**,
-  and the High-tier precision is only **39.3%**. Flagging Medium+High raises recall to 91.8% but flags two thirds of all cases.
-  Recall for the High class is only as good as it is because a third of all rows are labelled High by construction.
-- **The time-based stress test is much weaker.** ROC-AUC falls to 0.68 (XGBoost), High-class recall to 41%, and precision to 13%. Two reasons, which we cannot cleanly separate:
-  (1) the Severity label's meaning drifted over time by provider (base rate 24% in training vs 6.4% in test - see `reports/eda/FINDINGS.md`), so the test set has a different labelling regime;
-  (2) genuine distribution shift. Because of (1), the tier thresholds learned on 2016-2021 also put only ~20% of 2022-23 rows in the High tier. The stress-test numbers should not be read as deployment performance, but they do show that the primary-split numbers are optimistic about generalising to new periods.
-- **Probabilities are not well calibrated out of distribution** (time split: mean predicted 0.20 vs observed 0.064; Brier worse than a constant guess for all three models on that split).
-  On the primary split, Brier improves on the constant baseline (0.1295 vs 0.1571 for XGBoost).
-- **Where the skill comes from (`reports/robustness.md`):** AUC is 0.795 within Source1 rows and 0.734 within Source2 rows, so it is not purely a provider artefact.
-  Dropping `state` reduces XGBoost AUC from 0.781 to 0.741, so a noticeable part of the signal is location, not weather or time.
-- **What this is NOT:** the dataset has no non-accident rows, so this is not an accident-occurrence predictor, and Severity is delay impact, not injury severity. No claim of accident prevention can be made from these results.
-- The hyper-parameters were fixed in advance and never tuned on the test set. There was one train/test evaluation per split and no repeated peeking.
-  Only a single random seed was run, so differences of ~0.01 AUC between models should not be treated as established.
+- **Best model on the primary split is XGBoost:** ROC-AUC 0.754, PR-AUC 0.431 (a random ranker scores 0.195). Random Forest gets 0.742 and
+  Logistic Regression 0.707. The gap between models is small, which suggests the ceiling is set by the information in the features,
+  not by the model class. This is one seed and one split, so a ~0.01 AUC difference should not be treated as established.
+- **What the tiers mean in practice (XGBoost, primary split):** among test accidents placed in the *High* tier, 36.6% were high-impact (Severity 3-4).
+  In the *Low* tier it was 5.6%, against 19.5% overall. That is a 1.88x lift in the High tier and a ~3.5x reduction in the Low tier.
+  The High tier is still wrong about 63% of the time.
+- **Recall for the High-risk class:** XGBoost catches **62.5%** of high-impact accidents by flagging the top third of predictions, so **37.5% are missed**
+  (5,843 of 15,561), and High-tier precision is only **36.6%** (16,820 false alarms against 9,718 true hits).
+  Flagging Medium+High raises recall to 90.5%, but that flags two thirds of all cases.
+  Recall for the High class is only this high because the High tier is a third of all rows by construction.
+- **Threshold values used (XGBoost, primary split, from out-of-fold training predictions):** Low/Medium = 0.1108, Medium/High = 0.2277.
+- **The time-based stress test is much weaker.** XGBoost ROC-AUC falls to 0.665, High-class recall is 51.1% and precision 11.1%. Two reasons, which cannot be cleanly separated:
+  (1) the meaning of the Severity label drifted over time by provider (base rate 24% in training vs 6.4% in test, see `reports/eda/FINDINGS.md`), so the test set has a different labelling regime;
+  (2) genuine distribution shift. The stress-test numbers should not be read as deployment performance, but they do show that the primary-split numbers are
+  optimistic about generalising to new periods.
+- **Probabilities are not calibrated out of distribution:** in the time split, mean predicted probability is 0.231 while the observed rate is 0.064, and Brier is worse than
+  a constant guess for all three models (XGBoost 0.100 vs 0.060). On the primary split Brier does improve on the constant baseline (0.1354 vs 0.1571).
+  The tiers rank conditions; the raw probability should not be shown to a driver as a literal chance.
+- **Where the skill comes from:**
+  - Global SHAP (`reports/shap/`) ranks `state` first, `pressure_in` second (station pressure largely encodes altitude/location), then `crossing`, `month`, `traffic_signal`, and only then `weather_group`, `temperature_f`, `hour`.
+    Visibility and road surface rank much lower. **Weather is a weak driver in this data.**
+  - Within a single provider the ranking skill holds (`reports/robustness.md`): AUC 0.748 on Source1 rows, 0.740 on Source2 rows, and 0.745 when trained AND tested on Source2 only (whose label regime is stable over time, without `state`).
+  - Dropping `state` reduces XGBoost AUC from 0.754 to 0.699.
+- **Data-provider artefacts found and removed while building this (they inflated earlier runs):**
+  1. a `precip_missing` flag: it was a proxy for year (91% missing in 2016-18 vs 4% in 2021+);
+  2. wind speed: NaN wind before 2019 means calm, but was median-imputed, leaving an era fingerprint. Missing wind is now set to 0;
+  3. numeric precision: Source1 reports whole numbers far more often than Source2, letting trees decode the provider. Wind and temperature are now rounded to integers, and pressure and visibility to 0.1.
+  Together these lowered XGBoost's primary-split ROC-AUC from 0.781 to 0.754. Other provider fingerprints may remain (for example in the road-annotation flags or `month`), and I cannot rule them out.
+- **The model does not behave like driving common sense.** The three example inputs in `reports/shap/example_explanations.json` include a night-time fog case
+  (visibility 0.5 mi) that scores only *Medium* and a clear afternoon in California that scores *High*. The target is traffic-delay impact given that an accident happened, and it is
+  dominated by where the accident is and what road features exist, not by how hazardous the weather is.
+  A driver-facing warning built on it will often cite location or time of year rather than weather.
+- **What this is NOT:** the dataset has no non-accident rows, so this is not an accident-occurrence predictor, and Severity is delay impact, not injury severity.
+  No claim of accident prevention can be made from these results.
+- The hyper-parameters were fixed in advance, never tuned on the test set, and each split was evaluated once per final pipeline. However, I did change the feature set three times after looking at
+  the SHAP output and robustness checks (the three artefacts above), so the held-out numbers are not fully independent of my choices.

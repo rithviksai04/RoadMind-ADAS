@@ -17,7 +17,7 @@ PLAUSIBLE = {
 }
 NUMERIC = ["temperature_f", "humidity_pct", "pressure_in", "visibility_mi", "wind_speed_mph",
            "precipitation_in", "hour", "day_of_week", "month"]
-FLAGS = ["is_weekend", "is_rush_hour", "is_night", "is_windy", "precip_missing",
+FLAGS = ["is_weekend", "is_rush_hour", "is_night", "is_windy",
          "junction", "traffic_signal", "crossing", "stop", "give_way", "railway",
          "roundabout", "station", "amenity", "bump", "no_exit", "traffic_calming"]
 CATEGORICAL = ["weather_group", "road_surface", "state"]
@@ -81,12 +81,16 @@ def engineer(raw: pd.DataFrame) -> pd.DataFrame:
             df[col] = np.nan
     t = pd.to_datetime(df["Start_Time"], format="mixed")
     f = pd.DataFrame(index=df.index)
-    f["temperature_f"] = df["Temperature(F)"]
+    # Numeric precision differs by data provider (e.g. 86% of Source1 wind values are whole numbers vs 49% for
+    # Source2; temperature 91% vs 71%), which lets trees identify the provider from the decimals. Rounding removes it.
+    f["temperature_f"] = df["Temperature(F)"].round(0)
     f["humidity_pct"] = df["Humidity(%)"]
-    f["pressure_in"] = df["Pressure(in)"]
-    f["visibility_mi"] = df["Visibility(mi)"]
-    f["wind_speed_mph"] = df["Wind_Speed(mph)"]
-    f["precip_missing"] = df["Precipitation(in)"].isna()
+    f["pressure_in"] = df["Pressure(in)"].round(1)
+    f["visibility_mi"] = df["Visibility(mi)"].round(1)
+    # Missing/invalid wind -> 0 (calm). Evidence: before 2019 ~19% of rows have NaN wind and ~0.2% have exactly 0;
+    # from 2019 on ~3% NaN and ~17% exactly 0, i.e. "calm" was recorded as NaN in the early years. Median-imputing
+    # would leave a recording-era fingerprint that the model exploits.
+    f["wind_speed_mph"] = df["Wind_Speed(mph)"].fillna(0).round(0)
     f["precipitation_in"] = df["Precipitation(in)"]
     f["hour"] = t.dt.hour
     f["day_of_week"] = t.dt.dayofweek
