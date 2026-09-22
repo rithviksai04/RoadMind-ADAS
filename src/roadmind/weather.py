@@ -30,6 +30,29 @@ US_STATE_ABBR = {
     "Wisconsin": "WI", "Wyoming": "WY", "District of Columbia": "DC",
 }
 
+# State capital used to geocode a state selected by name (not by typed city). Full name -> "City, State".
+STATE_CAPITALS = {
+    "Alabama": "Montgomery, Alabama", "Alaska": "Juneau, Alaska", "Arizona": "Phoenix, Arizona",
+    "Arkansas": "Little Rock, Arkansas", "California": "Sacramento, California", "Colorado": "Denver, Colorado",
+    "Connecticut": "Hartford, Connecticut", "Delaware": "Dover, Delaware", "Florida": "Tallahassee, Florida",
+    "Georgia": "Atlanta, Georgia", "Hawaii": "Honolulu, Hawaii", "Idaho": "Boise, Idaho",
+    "Illinois": "Springfield, Illinois", "Indiana": "Indianapolis, Indiana", "Iowa": "Des Moines, Iowa",
+    "Kansas": "Topeka, Kansas", "Kentucky": "Frankfort, Kentucky", "Louisiana": "Baton Rouge, Louisiana",
+    "Maine": "Augusta, Maine", "Maryland": "Annapolis, Maryland", "Massachusetts": "Boston, Massachusetts",
+    "Michigan": "Lansing, Michigan", "Minnesota": "Saint Paul, Minnesota", "Mississippi": "Jackson, Mississippi",
+    "Missouri": "Jefferson City, Missouri", "Montana": "Helena, Montana", "Nebraska": "Lincoln, Nebraska",
+    "Nevada": "Carson City, Nevada", "New Hampshire": "Concord, New Hampshire", "New Jersey": "Trenton, New Jersey",
+    "New Mexico": "Santa Fe, New Mexico", "New York": "Albany, New York",
+    "North Carolina": "Raleigh, North Carolina", "North Dakota": "Bismarck, North Dakota",
+    "Ohio": "Columbus, Ohio", "Oklahoma": "Oklahoma City, Oklahoma", "Oregon": "Salem, Oregon",
+    "Pennsylvania": "Harrisburg, Pennsylvania", "Rhode Island": "Providence, Rhode Island",
+    "South Carolina": "Columbia, South Carolina", "South Dakota": "Pierre, South Dakota",
+    "Tennessee": "Nashville, Tennessee", "Texas": "Austin, Texas", "Utah": "Salt Lake City, Utah",
+    "Vermont": "Montpelier, Vermont", "Virginia": "Richmond, Virginia", "Washington": "Olympia, Washington",
+    "West Virginia": "Charleston, West Virginia", "Wisconsin": "Madison, Wisconsin", "Wyoming": "Cheyenne, Wyoming",
+    "District of Columbia": "Washington, District of Columbia",
+}
+
 # WMO weather codes (used by Open-Meteo) -> a free-text condition string that features.weather_group() buckets
 # correctly via its keyword rules (see feature_dictionary.md).
 WMO_CONDITION = {

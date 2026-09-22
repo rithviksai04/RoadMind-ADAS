@@ -64,3 +64,10 @@ def test_auto_conditions_feeds_explain_prediction_cleanly():
 
 def test_state_abbr_has_50_states_plus_dc():
     assert len(US_STATE_ABBR) == 51 and US_STATE_ABBR["California"] == "CA"
+
+
+def test_state_capitals_cover_exactly_the_same_states_as_state_abbr():
+    from roadmind.weather import STATE_CAPITALS
+    assert set(STATE_CAPITALS) == set(US_STATE_ABBR)
+    for name, query in STATE_CAPITALS.items():
+        assert query.endswith(name)

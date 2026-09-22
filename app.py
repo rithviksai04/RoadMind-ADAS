@@ -3,7 +3,7 @@ import pandas as pd
 import streamlit as st
 
 from roadmind.explain import explain_prediction
-from roadmind.weather import WeatherLookupError, auto_conditions
+from roadmind.weather import STATE_CAPITALS, US_STATE_ABBR, WeatherLookupError, auto_conditions
 
 st.set_page_config(page_title="RoadMind", page_icon="🚗")
 st.title("RoadMind - explainable road-risk co-pilot")
@@ -13,8 +13,7 @@ st.caption("Research prototype trained on US Accidents (2016-2023, CC BY-NC-SA 4
 
 WEATHER = ["Fair", "Clear", "Mostly Cloudy", "Partly Cloudy", "Cloudy", "Overcast", "Light Rain", "Rain", "Heavy Rain",
            "Light Drizzle", "Thunderstorm", "Light Snow", "Snow", "Heavy Snow", "Freezing Rain", "Fog", "Haze", "Smoke"]
-US_STATES = sorted("AL AZ AR CA CO CT DE FL GA ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH "
-                   "OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY DC".split())
+STATE_NAMES = sorted(US_STATE_ABBR)  # full state names, e.g. "California" - never bare codes like "CA" in the UI
 DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
 
@@ -31,7 +30,10 @@ with st.sidebar:
 
     live, live_error = None, None
     if is_auto:
-        place = st.text_input("City / place (US)", value="Austin, Texas")
+        picked_state = st.selectbox("State", STATE_NAMES, index=STATE_NAMES.index("Texas"),
+                                    help="Fetches live weather for the state capital - or type a specific city below.")
+        custom_city = st.text_input("Or a specific city (optional)", value="", placeholder="e.g. Houston, Texas")
+        place = custom_city.strip() or STATE_CAPITALS[picked_state]
         if st.button("🔄 Fetch live weather", width='stretch') or "live_data" not in st.session_state:
             try:
                 live = fetch_live(place)
@@ -50,8 +52,16 @@ with st.sidebar:
 
     weather_default = d("weather_condition", "Fair")
     weather = st.selectbox("Weather", WEATHER, index=WEATHER.index(weather_default) if weather_default in WEATHER else 0)
-    state_default = d("state", "CA") or "CA"
-    state = st.selectbox("State", US_STATES, index=US_STATES.index(state_default) if state_default in US_STATES else US_STATES.index("CA"))
+    if is_auto:
+        # Prefer the state actually resolved by the live fetch (a typed city can be in a different state than the
+        # dropdown pick above); fall back to the dropdown's own state if nothing was fetched yet.
+        resolved_code = (live.get("state") if live else None) or US_STATE_ABBR[picked_state]
+        resolved_name = next((n for n, c in US_STATE_ABBR.items() if c == resolved_code), picked_state)
+        st.caption(f"State used for the prediction: **{resolved_name}**")
+        state = resolved_code
+    else:
+        state_name = st.selectbox("State", STATE_NAMES, index=STATE_NAMES.index("California"))
+        state = US_STATE_ABBR[state_name]
     temp = st.slider("Temperature (F)", -20, 120, round(d("temperature_f", 65)))
     vis = st.slider("Visibility (mi)", 0.0, 10.0, min(10.0, round(d("visibility_mi", 10.0), 1)), 0.5)
     wind = st.slider("Wind speed (mph)", 0, 60, min(60, round(d("wind_speed_mph", 5))))
