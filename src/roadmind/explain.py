@@ -79,6 +79,12 @@ def _bundle():
     return b, pipe.named_steps["prep"], shap.TreeExplainer(pipe.named_steps["clf"])
 
 
+def get_thresholds() -> dict:
+    """The real tercile risk-tier thresholds this model was saved with (see reports/evaluation.md)."""
+    b, _, _ = _bundle()
+    return dict(b["thresholds"])
+
+
 UNIT_CONVERSIONS = {  # metric_key -> (imperial_key, function). Used only if the imperial key is absent.
     "temperature_c": ("temperature_f", lambda c: c * 9 / 5 + 32),
     "wind_speed_kmh": ("wind_speed_mph", lambda k: k / 1.60934),

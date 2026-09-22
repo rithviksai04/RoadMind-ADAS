@@ -1,0 +1,173 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ---------------------------------------------------------------------- */
+/* RoadMind brand palette - the ONLY colors this app draws from.          */
+/* ---------------------------------------------------------------------- */
+@theme {
+  --color-navy: #122340;
+  --color-slate: #2e4a72;
+  --color-steel: #3d6690;
+  --color-teal: #2e8b8b;
+  --color-risk-low: #3f7d5c;
+  --color-risk-medium: #b8863b;
+  --color-risk-high: #a63a32;
+  --color-border-grey: #b7c1ce;
+
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-lora), ui-serif, Georgia, serif;
+
+  --radius-lg: 0.75rem;
+  --radius-md: 0.5rem;
+  --radius-sm: 0.375rem;
+
+  --shadow-elevated: 0 1px 2px rgba(18, 35, 64, 0.06), 0 8px 24px -8px rgba(18, 35, 64, 0.18);
+  --shadow-elevated-dark: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px -10px rgba(0, 0, 0, 0.55);
+
+  --animate-radar-sweep: radar-sweep 8s linear infinite;
+  --animate-road-flow: road-flow 22s linear infinite;
+}
+
+@keyframes radar-sweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes road-flow {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -400px 0;
+  }
+}
+
+/* Semantic tokens - light mode (default) */
+:root {
+  --background: #f7f9fc;
+  --foreground: #122340;
+  --card: #ffffff;
+  --card-foreground: #122340;
+  --muted: #eef1f6;
+  --muted-foreground: #52627a;
+  --border: #b7c1ce;
+  --border-subtle: color-mix(in srgb, #b7c1ce 55%, transparent);
+  --ring: #2e4a72;
+
+  --primary: #2e4a72;
+  --primary-foreground: #f7f9fc;
+  --secondary: #3d6690;
+  --secondary-foreground: #f7f9fc;
+  --accent: #2e8b8b;
+  --accent-foreground: #ffffff;
+
+  --risk-low: #3f7d5c;
+  --risk-medium: #b8863b;
+  --risk-high: #a63a32;
+
+  --shadow-card: var(--shadow-elevated);
+}
+
+/* Semantic tokens - dark mode (default theme for this product) */
+.dark {
+  --background: #0b1220;
+  --foreground: #eef2f8;
+  --card: #122340;
+  --card-foreground: #eef2f8;
+  --muted: #16294a;
+  --muted-foreground: #9db0c9;
+  --border: color-mix(in srgb, #b7c1ce 22%, transparent);
+  --border-subtle: color-mix(in srgb, #b7c1ce 12%, transparent);
+  --ring: #3d6690;
+
+  --primary: #6e93c4;
+  --primary-foreground: #0b1220;
+  --secondary: #3d6690;
+  --secondary-foreground: #eef2f8;
+  --accent: #3aa3a3;
+  --accent-foreground: #06231f;
+
+  --risk-low: #5aa47c;
+  --risk-medium: #d6a25a;
+  --risk-high: #d8574c;
+
+  --shadow-card: var(--shadow-elevated-dark);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-risk-low: var(--risk-low);
+  --color-risk-medium: var(--risk-medium);
+  --color-risk-high: var(--risk-high);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+.font-serif-hero {
+  font-family: var(--font-serif);
+}
+
+.card-elevated {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+/* Faint radar-sweep + road-line hero backdrop - tasteful, not busy */
+.hero-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.hero-backdrop::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 160vmax;
+  height: 160vmax;
+  margin-left: -80vmax;
+  margin-top: -80vmax;
+  background: conic-gradient(from 0deg, transparent 0deg, color-mix(in srgb, var(--accent) 14%, transparent) 8deg, transparent 40deg);
+  animation: radar-sweep 9s linear infinite;
+  opacity: 0.55;
+}
+.hero-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: -10% -10% -10% -10%;
+  background-image: repeating-linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--color-border-grey) 30%, transparent) 0px,
+    color-mix(in srgb, var(--color-border-grey) 30%, transparent) 2px,
+    transparent 2px,
+    transparent 46px
+  );
+  mask-image: radial-gradient(ellipse at 50% 30%, black 0%, transparent 70%);
+  animation: road-flow 24s linear infinite;
+}

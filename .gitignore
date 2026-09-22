@@ -10,3 +10,9 @@ kaggle.json
 models/*.joblib
 .ipynb_checkpoints/
 data/external/
+
+# Frontend (Next.js)
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
+backend/__pycache__/

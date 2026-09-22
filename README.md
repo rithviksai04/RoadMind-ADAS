@@ -102,6 +102,25 @@ Programmatic: `from roadmind.explain import explain_prediction` returns
 Inputs you did not supply are imputed by the model but are excluded from the factor list and the reasons (their combined SHAP contribution is returned as `unprovided_inputs_shap_total`).
 Metric units are also accepted directly: `temperature_c`, `wind_speed_kmh`, `precipitation_mm`, `visibility_km`, `pressure_hpa` (an explicit imperial value always wins), and factor descriptions display in whichever unit system you used.
 
+### Web dashboard (FastAPI + Next.js)
+
+A production-styled two-panel dashboard - condition inputs on the left, an animated risk gauge, SHAP bar
+chart and driver-warning card on the right, plus a Model Transparency tab (real held-out metrics) and an
+About/Limitations tab. Built with Next.js (App Router, TypeScript), Tailwind CSS, Radix primitives, Recharts
+and Framer Motion, in the brand palette from the project proposal, dark mode by default.
+
+```bash
+./run_dev.sh                       # backend (:8000) + frontend (:3000) together
+# or separately:
+.venv/bin/uvicorn backend.main:app --reload --port 8000
+cd frontend && npm install && npm run dev
+```
+
+Every number the dashboard shows is real - the same `explain_prediction()` and `reports/metrics.json` used
+everywhere else in this project, served through `backend/main.py` (see `backend/README.md`). The frontend
+build is mock-data-capable (`frontend/src/lib/mock.ts`, toggled by `NEXT_PUBLIC_USE_MOCK` in `.env.local`)
+for working on the UI without the backend running, but ships wired to the live API by default.
+
 ## Project layout
 ```
 src/roadmind/  sample.py eda.py features.py preprocess.py train.py evaluate.py robustness.py explain.py cli.py
