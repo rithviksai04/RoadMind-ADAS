@@ -87,3 +87,39 @@ def test_road_feature_changes_prediction():
 
 def test_notes_state_the_limits():
     assert "not P(accident)" in explain_prediction(FULL)["notes"]
+
+
+def test_metric_units_match_manual_conversion():
+    """temperature_c/wind_speed_kmh/etc. must convert to exactly the same result as the imperial equivalents."""
+    imperial = explain_prediction({"weather_condition": "Rain", "temperature_f": 80.6, "wind_speed_mph": 12.4,
+                                   "precipitation_in": 0.394, "visibility_mi": 3.11, "state": "TX"})
+    metric = explain_prediction({"weather_condition": "Rain", "temperature_c": 27, "wind_speed_kmh": 20,
+                                 "precipitation_mm": 10, "visibility_km": 5, "state": "TX"})
+    assert imperial["probability"] == pytest.approx(metric["probability"], abs=1e-4)
+    assert imperial["risk_level"] == metric["risk_level"]
+
+
+def test_metric_display_shown_in_metric_units():
+    r = explain_prediction({"temperature_c": 40, "state": "CA"}, top_k=10)
+    desc = " ".join(f["description"] for f in r["top_factors"])
+    assert " C)" in desc and " F)" not in desc
+
+
+def test_explicit_imperial_wins_over_metric_if_both_given():
+    r = explain_prediction({"temperature_f": 100, "temperature_c": 0})  # contradictory on purpose
+    assert any(f["feature"] == "temperature_f" and abs(f["value"] - 100) < 0.5 for f in
+               (r["top_factors"] if any(f["feature"] == "temperature_f" for f in r["top_factors"]) else
+                [{"feature": "temperature_f", "value": 100}]))
+
+
+def test_location_label_not_sent_as_us_state():
+    """A non-US location_label must not leak into the `state` feature (Indian states aren't in training data)."""
+    r = explain_prediction({"state": None, "location_label": "Hyderabad, Telangana, India", "hour": 12})
+    assert not any(f["feature"] == "state" for f in r["top_factors"])
+    assert "Location:" in r["notes"] and "Telangana" in r["notes"]
+    assert "never seen Indian roads" in r["notes"]
+
+
+def test_us_state_location_label_gets_no_india_warning():
+    r = explain_prediction({"state": "CA", "location_label": "Los Angeles, California, USA"})
+    assert "never seen Indian roads" not in r["notes"]

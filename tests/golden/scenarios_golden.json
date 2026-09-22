@@ -54,5 +54,25 @@
   "S14_windy_clear_az": {
     "risk_level": "High",
     "probability": 0.3021
+  },
+  "S15_hyderabad_monsoon": {
+    "risk_level": "High",
+    "probability": 0.3571
+  },
+  "S16_delhi_winter_fog": {
+    "risk_level": "Medium",
+    "probability": 0.1339
+  },
+  "S17_jaipur_summer_heat": {
+    "risk_level": "Low",
+    "probability": 0.102
+  },
+  "S18_mumbai_thunderstorm": {
+    "risk_level": "High",
+    "probability": 0.5362
+  },
+  "S19_shimla_snow": {
+    "risk_level": "High",
+    "probability": 0.2335
   }
 }

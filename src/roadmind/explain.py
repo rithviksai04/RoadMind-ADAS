@@ -18,17 +18,32 @@ from roadmind.preprocess import make_splits
 
 FLAGS_POI = {"junction", "traffic_signal", "crossing", "stop", "give_way", "railway", "roundabout", "station",
              "amenity", "bump", "no_exit", "traffic_calming"}
+US_STATE_CODES = {"AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA",
+                  "ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR",
+                  "PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"}
 MODEL_PATH = MODELS_DIR / "stratified_xgboost.joblib"
 
 # Driver-facing wording for a feature that pushes risk UP. value -> phrase (None = not noteworthy).
-def _phrase(feat: str, v) -> str | None:
+def _phrase(feat: str, v, metric: bool = False) -> str | None:
+    if metric:
+        P_UNITS = {
+            "visibility_mi": lambda x: f"Reduced visibility ({x * 1.60934:.1f} km)" if x < 5 else "Visibility conditions",
+            "precipitation_in": lambda x: f"Precipitation ({x * 25.4:.1f} mm/hr)" if x > 0 else "No precipitation reported",
+            "temperature_f": lambda x: f"Temperature ({(x - 32) * 5 / 9:.0f} C)",
+            "pressure_in": lambda x: f"Barometric pressure ({x * 33.8639:.0f} hPa)",
+            "wind_speed_mph": lambda x: f"Wind ({x * 1.60934:.0f} km/h)",
+        }
+    else:
+        P_UNITS = {
+            "visibility_mi": lambda x: f"Reduced visibility ({x:.1f} mi)" if x < 5 else "Visibility conditions",
+            "precipitation_in": lambda x: f"Precipitation ({x:.2f} in/hr)" if x > 0 else "No precipitation reported",
+            "temperature_f": lambda x: f"Temperature ({x:.0f} F)",
+            "pressure_in": lambda x: f"Barometric pressure ({x:.2f} in)",
+            "wind_speed_mph": lambda x: f"Wind ({x:.0f} mph)",
+        }
     P = {
-        "visibility_mi": lambda x: f"Reduced visibility ({x:.1f} mi)" if x < 5 else "Visibility conditions",
-        "precipitation_in": lambda x: f"Precipitation ({x:.2f} in/hr)" if x > 0 else "No precipitation reported",
-        "temperature_f": lambda x: f"Temperature ({x:.0f} F)",
+        **P_UNITS,
         "humidity_pct": lambda x: f"Humidity ({x:.0f}%)",
-        "pressure_in": lambda x: f"Barometric pressure ({x:.2f} in)",
-        "wind_speed_mph": lambda x: f"Wind ({x:.0f} mph)",
         "hour": lambda x: f"Time of day ({int(x):02d}:00)",
         "day_of_week": lambda x: f"Day of week ({['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][int(x)]})",
         "month": lambda x: f"Time of year (month {int(x)})",
@@ -62,6 +77,25 @@ def _bundle():
     b = joblib.load(MODEL_PATH)
     pipe = b["pipeline"]
     return b, pipe.named_steps["prep"], shap.TreeExplainer(pipe.named_steps["clf"])
+
+
+UNIT_CONVERSIONS = {  # metric_key -> (imperial_key, function). Used only if the imperial key is absent.
+    "temperature_c": ("temperature_f", lambda c: c * 9 / 5 + 32),
+    "wind_speed_kmh": ("wind_speed_mph", lambda k: k / 1.60934),
+    "precipitation_mm": ("precipitation_in", lambda mm: mm / 25.4),
+    "visibility_km": ("visibility_mi", lambda k: k / 1.60934),
+    "pressure_hpa": ("pressure_in", lambda h: h * 0.02953),
+}
+
+
+def _normalize_units(d: dict) -> dict:
+    """Accept metric inputs (temperature_c, wind_speed_kmh, precipitation_mm, visibility_km, pressure_hpa) and
+    convert them to the imperial units the model was trained on. An explicit imperial value always wins."""
+    out = dict(d)
+    for mkey, (ikey, fn) in UNIT_CONVERSIONS.items():
+        if out.get(mkey) is not None and out.get(ikey) is None:
+            out[ikey] = fn(out[mkey])
+    return out
 
 
 def _to_raw(d: dict) -> pd.DataFrame:
@@ -113,7 +147,16 @@ def explain_prediction(input_dict: dict, top_k: int = 4) -> dict:
     (0=Mon), month, state (e.g. 'CA'), and booleans junction, traffic_signal, crossing, stop, give_way, railway,
     roundabout, station, amenity, bump, no_exit, traffic_calming.
 
+    Also accepts metric units, converted internally (an explicit imperial value always wins):
+    temperature_c, wind_speed_kmh, precipitation_mm, visibility_km, pressure_hpa.
+    `location_label` (e.g. "Hyderabad, Telangana, India") is display-only - it is NEVER sent to the model as
+    `state`, because the model was trained only on US state codes; leave `state` unset for a non-US location
+    so it correctly contributes nothing rather than being silently misread as an unknown US state.
+
     Returns {risk_level, probability, top_factors, suggested_message, ...}."""
+    metric_display = any(k in input_dict for k in UNIT_CONVERSIONS) if "metric" not in input_dict else input_dict.pop("metric")
+    input_dict = _normalize_units(input_dict)
+    location_label = input_dict.pop("location_label", None)
     b, prep, expl = _bundle()
     feats = engineer(_to_raw(input_dict))
     X = prep.transform(feats)
@@ -132,18 +175,25 @@ def explain_prediction(input_dict: dict, top_k: int = 4) -> dict:
     for f, s in ranked[:top_k]:
         v = feats.iloc[0][f]
         factors.append({"feature": f, "value": v.item() if hasattr(v, "item") else v,
-                        "description": _phrase(f, v), "shap_log_odds": round(s, 4), "provided": True,
+                        "description": _phrase(f, v, metric=metric_display), "shap_log_odds": round(s, 4), "provided": True,
                         "direction": "raises risk" if s > 0 else "lowers risk"})
     # Road-feature flags are only quoted as a reason when the feature is present (not "no crossing nearby").
     absent_poi = lambda f: f["feature"] in FLAGS_POI and not f["value"]
     raising = [f["description"] for f in factors if f["shap_log_odds"] > 0 and f["provided"] and not absent_poi(f)]
     reasons = " • ".join(raising) if raising else "No single condition stands out"
     msg = f"{level.upper()} RISK\n{HEADLINE[level]}\nReasons: {reasons}\nSuggested response: {RESPONSE[level]}"
+    is_us_state = input_dict.get("state") in US_STATE_CODES
+    notes = ("Estimates P(high delay-impact | an accident occurs under these conditions), not P(accident). "
+             "Decision-support only.")
+    if location_label and not is_us_state:
+        notes += (f" Location: {location_label}. WARNING: the underlying model is trained only on 2016-2023 US "
+                  "accident data; it has never seen Indian roads, monsoons, or traffic patterns. Weather/time/"
+                  "road-feature effects are applied as-is (an untested extrapolation) and no `state`/location "
+                  "signal is used at all for a non-US place. Treat this output as illustrative only.")
     return {"risk_level": level, "probability": round(p, 4), "top_factors": factors,
-            "suggested_message": msg,
+            "suggested_message": msg, "location_label": location_label,
             "unprovided_inputs_shap_total": round(sum(unprovided.values()), 4),
-            "notes": "Estimates P(high delay-impact | an accident occurs under these conditions), not P(accident). "
-                     "Decision-support only."}
+            "notes": notes}
 
 
 def global_plots():
