@@ -86,13 +86,22 @@ Any change to the sample changes every number in this README, so re-run steps 2-
 ## Demo
 
 ```bash
-streamlit run app.py                                   # sliders for weather / visibility / time / state / road features
+streamlit run app.py                                   # Region: India/US, Data source: Automatic (live weather) or Manual
 python -m roadmind.cli --weather Fog --visibility 0.5 --hour 23 --state TX --temp 45 --precip 0.05
+python -m roadmind.cli --auto "Austin, Texas"           # live US weather instead of manual flags
+python -m roadmind.cli_india --auto Mumbai              # live India weather + local time (Hyderabad/IST if omitted)
 ```
+The app and both CLIs support **automatic** (live weather, fetched from [Open-Meteo](https://open-meteo.com/) - free,
+no API key/credentials) and **manual** entry; automatic mode pre-fills the same fields, which you can still adjust
+before running. `roadmind.weather.auto_conditions(place)` geocodes free text to a location, pulls current conditions
+and the place's live local hour/day/month, and returns imperial units for a US place or metric elsewhere. It never
+sends a non-US location as a US `state` - see `notes` in the output.
+
 Programmatic: `from roadmind.explain import explain_prediction` returns
 `{risk_level, probability, top_factors, suggested_message, notes}`. The message follows the proposal's format
 (risk level, reasons, suggested response). Reasons are limited to features that exist in the data - no "high speed" or "heavy traffic".
 Inputs you did not supply are imputed by the model but are excluded from the factor list and the reasons (their combined SHAP contribution is returned as `unprovided_inputs_shap_total`).
+Metric units are also accepted directly: `temperature_c`, `wind_speed_kmh`, `precipitation_mm`, `visibility_km`, `pressure_hpa` (an explicit imperial value always wins), and factor descriptions display in whichever unit system you used.
 
 ## Project layout
 ```

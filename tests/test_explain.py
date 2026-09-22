@@ -5,7 +5,7 @@ import pytest
 
 from roadmind.explain import explain_prediction
 
-pytestmark = pytest.mark.needs_model
+pytestmark = pytest.mark.needs_model  # test_explain.py
 KEYS = {"risk_level", "probability", "top_factors", "suggested_message", "unprovided_inputs_shap_total", "notes"}
 FULL = {"weather_condition": "Light Rain", "temperature_f": 50, "visibility_mi": 3, "wind_speed_mph": 12,
         "precipitation_in": 0.1, "humidity_pct": 90, "pressure_in": 29.8, "hour": 18, "day_of_week": 4,

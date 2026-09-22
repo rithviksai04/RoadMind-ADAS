@@ -1,0 +1,115 @@
+"""Live weather lookup via Open-Meteo (free, no API key/credentials - nothing to hardcode).
+
+Two calls: geocoding (place name -> lat/lon/state/country/timezone) and a current-conditions forecast call.
+`auto_conditions()` turns a free-text place into an `explain_prediction()`-ready input dict, using imperial units
+for a US location and metric units elsewhere (matching what the demo displays for each region), and the CURRENT
+local hour/day/month at that place. Network calls are isolated in `_geocode_raw`/`_forecast_raw` so tests can
+monkeypatch them offline.
+"""
+import datetime as dt
+import json
+import urllib.error
+import urllib.parse
+import urllib.request
+import zoneinfo
+
+GEOCODE_URL = "https://geocoding-api.open-meteo.com/v1/search"
+FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
+CURRENT_VARS = ("temperature_2m,relative_humidity_2m,precipitation,rain,showers,snowfall,weather_code,"
+                "pressure_msl,wind_speed_10m,visibility")
+
+US_STATE_ABBR = {
+    "Alabama": "AL", "Alaska": "AK", "Arizona": "AZ", "Arkansas": "AR", "California": "CA", "Colorado": "CO",
+    "Connecticut": "CT", "Delaware": "DE", "Florida": "FL", "Georgia": "GA", "Hawaii": "HI", "Idaho": "ID",
+    "Illinois": "IL", "Indiana": "IN", "Iowa": "IA", "Kansas": "KS", "Kentucky": "KY", "Louisiana": "LA",
+    "Maine": "ME", "Maryland": "MD", "Massachusetts": "MA", "Michigan": "MI", "Minnesota": "MN",
+    "Mississippi": "MS", "Missouri": "MO", "Montana": "MT", "Nebraska": "NE", "Nevada": "NV",
+    "New Hampshire": "NH", "New Jersey": "NJ", "New Mexico": "NM", "New York": "NY", "North Carolina": "NC",
+    "North Dakota": "ND", "Ohio": "OH", "Oklahoma": "OK", "Oregon": "OR", "Pennsylvania": "PA",
+    "Rhode Island": "RI", "South Carolina": "SC", "South Dakota": "SD", "Tennessee": "TN", "Texas": "TX",
+    "Utah": "UT", "Vermont": "VT", "Virginia": "VA", "Washington": "WA", "West Virginia": "WV",
+    "Wisconsin": "WI", "Wyoming": "WY", "District of Columbia": "DC",
+}
+
+# WMO weather codes (used by Open-Meteo) -> a free-text condition string that features.weather_group() buckets
+# correctly via its keyword rules (see feature_dictionary.md).
+WMO_CONDITION = {
+    0: "Clear", 1: "Fair", 2: "Partly Cloudy", 3: "Overcast", 45: "Fog", 48: "Fog",
+    51: "Light Drizzle", 53: "Drizzle", 55: "Heavy Drizzle", 56: "Freezing Drizzle", 57: "Freezing Drizzle",
+    61: "Light Rain", 63: "Rain", 65: "Heavy Rain", 66: "Freezing Rain", 67: "Freezing Rain",
+    71: "Light Snow", 73: "Snow", 75: "Heavy Snow", 77: "Snow Grains",
+    80: "Light Rain Showers", 81: "Rain Showers", 82: "Heavy Rain Showers",
+    85: "Light Snow Showers", 86: "Heavy Snow Showers", 95: "Thunderstorm",
+    96: "Thunderstorm with Hail", 99: "Thunderstorm with Hail",
+}
+
+
+class WeatherLookupError(RuntimeError):
+    pass
+
+
+def _get_json(url: str, timeout: float = 8.0) -> dict:
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as r:
+            return json.loads(r.read())
+    except (urllib.error.URLError, TimeoutError, OSError) as e:
+        raise WeatherLookupError(f"could not reach {url.split('?')[0]}: {e}") from e
+
+
+def _geocode_raw(query: str, count: int = 5) -> list[dict]:
+    url = f"{GEOCODE_URL}?{urllib.parse.urlencode({'name': query, 'count': count, 'language': 'en'})}"
+    return _get_json(url).get("results") or []
+
+
+def _forecast_raw(lat: float, lon: float, units_imperial: bool) -> dict:
+    params = {"latitude": lat, "longitude": lon, "current": CURRENT_VARS, "timezone": "auto"}
+    if units_imperial:
+        params.update(temperature_unit="fahrenheit", wind_speed_unit="mph", precipitation_unit="inch")
+    return _get_json(f"{FORECAST_URL}?{urllib.parse.urlencode(params)}")
+
+
+def geocode(query: str, prefer_country_code: str | None = None) -> dict:
+    """Best-matching place for free text like 'Hyderabad' or 'Austin, Texas'. Raises WeatherLookupError if none."""
+    results = _geocode_raw(query)
+    if not results:
+        raise WeatherLookupError(f"no location found for '{query}'")
+    if prefer_country_code:
+        results = sorted(results, key=lambda r: r.get("country_code") != prefer_country_code)
+    r = results[0]
+    return {"name": r["name"], "admin1": r.get("admin1"), "country": r.get("country"),
+            "country_code": r.get("country_code"), "lat": r["latitude"], "lon": r["longitude"],
+            "timezone": r.get("timezone", "UTC")}
+
+
+def auto_conditions(query: str, prefer_country_code: str | None = None,
+                    geocode_fn=geocode, forecast_fn=_forecast_raw) -> dict:
+    """Free-text place -> explain_prediction()-ready input dict, using CURRENT live weather and local time."""
+    place = geocode_fn(query, prefer_country_code)
+    is_us = place["country_code"] == "US"
+    fc = forecast_fn(place["lat"], place["lon"], is_us)
+    c = fc.get("current")
+    if not c:
+        raise WeatherLookupError("forecast response had no 'current' block")
+    now = dt.datetime.fromisoformat(c["time"])
+    try:
+        now = now.replace(tzinfo=zoneinfo.ZoneInfo(place["timezone"]))
+    except Exception:
+        pass
+    code = c.get("weather_code")
+    out = {
+        "weather_condition": WMO_CONDITION.get(code, "Fair" if code == 0 else "Cloudy"),
+        "humidity_pct": c.get("relative_humidity_2m"),
+        "hour": now.hour, "day_of_week": now.weekday(), "month": now.month,
+        "location_label": ", ".join(x for x in [place["name"], place["admin1"], place["country"]] if x),
+        "_source": "Open-Meteo live current-conditions (fetched just now)", "_fetched_at_local": now.isoformat(),
+    }
+    if is_us:
+        out.update(temperature_f=c.get("temperature_2m"), wind_speed_mph=c.get("wind_speed_10m"),
+                   precipitation_in=c.get("precipitation"), pressure_in=c.get("pressure_msl", 0) * 0.02953,
+                   visibility_mi=(c.get("visibility") or 0) / 1609.34,
+                   state=US_STATE_ABBR.get(place["admin1"] or ""))
+    else:
+        out.update(temperature_c=c.get("temperature_2m"), wind_speed_kmh=c.get("wind_speed_10m"),
+                   precipitation_mm=c.get("precipitation"), pressure_hpa=c.get("pressure_msl"),
+                   visibility_km=(c.get("visibility") or 0) / 1000)
+    return out
