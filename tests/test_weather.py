@@ -1,15 +1,13 @@
 """Offline tests for roadmind.weather - network calls are monkeypatched so the suite never depends on the internet."""
 import pytest
 
-from roadmind.weather import (US_STATE_ABBR, WeatherLookupError, WMO_CONDITION, auto_conditions, geocode)
+from roadmind.weather import US_STATE_ABBR, WeatherLookupError, WMO_CONDITION, auto_conditions, geocode
 
-AUSTIN_GEOCODE = [{"name": "Austin", "admin1": "Texas", "country": "United States", "country_code": "US",
-                   "lat": 30.27, "lon": -97.74, "timezone": "America/Chicago"}]
-HYDERABAD_GEOCODE = [{"name": "Hyderabad", "admin1": "Telangana", "country": "India", "country_code": "IN",
-                      "lat": 17.38, "lon": 78.46, "timezone": "Asia/Kolkata"}]
-FAKE_CURRENT = {"current": {"time": "2026-06-15T14:30", "temperature_2m": 30.0, "relative_humidity_2m": 70,
-                            "precipitation": 2.5, "weather_code": 61, "pressure_msl": 1008.0,
-                            "wind_speed_10m": 15.0, "visibility": 8000.0}}
+AUSTIN_GEOCODE = {"name": "Austin", "admin1": "Texas", "country": "United States", "country_code": "US",
+                  "lat": 30.27, "lon": -97.74, "timezone": "America/Chicago"}
+FAKE_CURRENT = {"current": {"time": "2026-06-15T14:30", "temperature_2m": 86.0, "relative_humidity_2m": 70,
+                            "precipitation": 0.1, "weather_code": 61, "pressure_msl": 1008.0,
+                            "wind_speed_10m": 9.3, "visibility": 26246.7}}
 
 
 def test_wmo_condition_covers_common_codes():
@@ -25,46 +23,41 @@ def test_geocode_raises_on_no_results(monkeypatch):
 
 def test_geocode_prefers_requested_country(monkeypatch):
     raw_results = [
-        {"name": "Hyderabad", "admin1": "Sindh", "country": "Pakistan", "country_code": "PK",
-         "latitude": 25.4, "longitude": 68.4, "timezone": "Asia/Karachi"},
-        {"name": "Hyderabad", "admin1": "Telangana", "country": "India", "country_code": "IN",
-         "latitude": 17.38, "longitude": 78.46, "timezone": "Asia/Kolkata"},
+        {"name": "Austin", "admin1": None, "country": "Some Other Place", "country_code": "XX",
+         "latitude": 1.0, "longitude": 1.0, "timezone": "UTC"},
+        {"name": "Austin", "admin1": "Texas", "country": "United States", "country_code": "US",
+         "latitude": 30.27, "longitude": -97.74, "timezone": "America/Chicago"},
     ]
     monkeypatch.setattr("roadmind.weather._geocode_raw", lambda q, count=5: raw_results)
-    assert geocode("Hyderabad", prefer_country_code="IN")["country_code"] == "IN"
+    assert geocode("Austin", prefer_country_code="US")["country_code"] == "US"
 
 
-def test_auto_conditions_us_uses_imperial_units_and_maps_state():
+def test_auto_conditions_uses_imperial_units_and_maps_state():
     d = auto_conditions("Austin, Texas", prefer_country_code="US",
-                        geocode_fn=lambda q, c: AUSTIN_GEOCODE[0], forecast_fn=lambda lat, lon, imp: FAKE_CURRENT)
-    assert d["state"] == "TX" and "temperature_f" in d and "temperature_c" not in d
-    assert d["weather_condition"] == "Light Rain"  # WMO 61
+                        geocode_fn=lambda q, c: AUSTIN_GEOCODE, forecast_fn=lambda lat, lon: FAKE_CURRENT)
+    assert d["state"] == "TX"
+    assert d["temperature_f"] == 86.0 and d["weather_condition"] == "Light Rain"  # WMO 61
     assert d["hour"] == 14 and d["month"] == 6
     assert d["location_label"] == "Austin, Texas, United States"
 
 
-def test_auto_conditions_india_uses_metric_units_and_no_state():
-    d = auto_conditions("Hyderabad", prefer_country_code="IN",
-                        geocode_fn=lambda q, c: HYDERABAD_GEOCODE[0], forecast_fn=lambda lat, lon, imp: FAKE_CURRENT)
-    assert "state" not in d and "temperature_c" in d and "temperature_f" not in d
-    assert d["temperature_c"] == 30.0 and d["wind_speed_kmh"] == 15.0
-    assert d["location_label"] == "Hyderabad, Telangana, India"
+def test_auto_conditions_unrecognized_state_leaves_state_unset():
+    place = {**AUSTIN_GEOCODE, "admin1": "Somewhere Unmapped"}
+    d = auto_conditions("X", geocode_fn=lambda q, c: place, forecast_fn=lambda lat, lon: FAKE_CURRENT)
+    assert d["state"] is None
 
 
 def test_auto_conditions_missing_current_block_raises():
     with pytest.raises(WeatherLookupError):
-        auto_conditions("X", geocode_fn=lambda q, c: AUSTIN_GEOCODE[0], forecast_fn=lambda lat, lon, imp: {})
+        auto_conditions("X", geocode_fn=lambda q, c: AUSTIN_GEOCODE, forecast_fn=lambda lat, lon: {})
 
 
-import pytest as _pytest
-
-
-@_pytest.mark.needs_model
+@pytest.mark.needs_model
 def test_auto_conditions_feeds_explain_prediction_cleanly():
     """The extra `_source`/`_fetched_at_local` bookkeeping keys must not break explain_prediction."""
     from roadmind.explain import explain_prediction
     d = auto_conditions("Austin, Texas", prefer_country_code="US",
-                        geocode_fn=lambda q, c: AUSTIN_GEOCODE[0], forecast_fn=lambda lat, lon, imp: FAKE_CURRENT)
+                        geocode_fn=lambda q, c: AUSTIN_GEOCODE, forecast_fn=lambda lat, lon: FAKE_CURRENT)
     r = explain_prediction(d)
     assert r["risk_level"] in {"Low", "Medium", "High"}
 

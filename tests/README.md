@@ -10,9 +10,11 @@ One command from the project root:
 | File | What it checks | Needs |
 |---|---|---|
 | `test_features.py` | weather grouping, road-surface rule, plausibility clipping, wind/rounding rules, rush-hour/night/weekend flags | nothing |
-| `test_explain.py` | `explain_prediction()` contract, proposal message format, tier == thresholds, sparse/odd input never crashes, un-supplied inputs never shown, no invented "speed/traffic" reasons | trained model |
+| `test_explain.py` | `explain_prediction()` contract, proposal message format, tier == thresholds, sparse/odd input never crashes, un-supplied inputs never shown, no invented "speed/traffic" reasons, metric-unit conversion | trained model |
 | `test_artifacts.py` | leakage guards, split integrity (disjoint, chronological), metric plausibility (beats chance, not suspiciously perfect), tiers ordered by observed risk, saved models load | pipeline outputs |
-| `test_scenarios.py` | every scenario in `scenarios.json` runs; bad sensor values behave like missing; **golden-snapshot regression** | trained model |
+| `test_scenarios.py` | every scenario in `scenarios.json` (14 US weather/road/time cases) runs; bad sensor values behave like missing; **golden-snapshot regression** | trained model |
+| `test_weather.py` | live-weather geocoding/unit mapping, state resolution, error handling - network calls monkeypatched, so this never needs the internet | nothing (mocked) |
+| `test_fuzz.py` | 300+ randomized inputs (every US state individually, all weather keywords, extreme/out-of-range values, everything missing) never crash and always return a well-formed result | trained model |
 
 **Add a scenario:** append an object to `scenarios.json` (`id`, `why`, `input`), then run
 `python tests/run_scenarios.py --update-golden`. Open `tests/results/scenario_report.md` for the table of tiers, scores and SHAP reasons.

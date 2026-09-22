@@ -1,10 +1,9 @@
-"""Live weather lookup via Open-Meteo (free, no API key/credentials - nothing to hardcode).
+"""Live weather lookup via Open-Meteo (free, no API key/credentials - nothing to hardcode), for the US demo.
 
 Two calls: geocoding (place name -> lat/lon/state/country/timezone) and a current-conditions forecast call.
-`auto_conditions()` turns a free-text place into an `explain_prediction()`-ready input dict, using imperial units
-for a US location and metric units elsewhere (matching what the demo displays for each region), and the CURRENT
-local hour/day/month at that place. Network calls are isolated in `_geocode_raw`/`_forecast_raw` so tests can
-monkeypatch them offline.
+`auto_conditions()` turns a free-text US place into an `explain_prediction()`-ready input dict (imperial units,
+matching the training data), using the CURRENT local hour/day/month at that place. Network calls are isolated in
+`_geocode_raw`/`_forecast_raw` so tests can monkeypatch them offline.
 """
 import datetime as dt
 import json
@@ -61,10 +60,9 @@ def _geocode_raw(query: str, count: int = 5) -> list[dict]:
     return _get_json(url).get("results") or []
 
 
-def _forecast_raw(lat: float, lon: float, units_imperial: bool) -> dict:
-    params = {"latitude": lat, "longitude": lon, "current": CURRENT_VARS, "timezone": "auto"}
-    if units_imperial:
-        params.update(temperature_unit="fahrenheit", wind_speed_unit="mph", precipitation_unit="inch")
+def _forecast_raw(lat: float, lon: float) -> dict:
+    params = {"latitude": lat, "longitude": lon, "current": CURRENT_VARS, "timezone": "auto",
+              "temperature_unit": "fahrenheit", "wind_speed_unit": "mph", "precipitation_unit": "inch"}
     return _get_json(f"{FORECAST_URL}?{urllib.parse.urlencode(params)}")
 
 
@@ -81,12 +79,13 @@ def geocode(query: str, prefer_country_code: str | None = None) -> dict:
             "timezone": r.get("timezone", "UTC")}
 
 
-def auto_conditions(query: str, prefer_country_code: str | None = None,
+def auto_conditions(query: str, prefer_country_code: str | None = "US",
                     geocode_fn=geocode, forecast_fn=_forecast_raw) -> dict:
-    """Free-text place -> explain_prediction()-ready input dict, using CURRENT live weather and local time."""
+    """Free-text place -> explain_prediction()-ready input dict (imperial units), using CURRENT live weather and
+    local time. `state` is set only when the place resolves to a recognized US state; otherwise it is left unset
+    so the model correctly uses no location signal rather than being silently misread as an unknown US state."""
     place = geocode_fn(query, prefer_country_code)
-    is_us = place["country_code"] == "US"
-    fc = forecast_fn(place["lat"], place["lon"], is_us)
+    fc = forecast_fn(place["lat"], place["lon"])
     c = fc.get("current")
     if not c:
         raise WeatherLookupError("forecast response had no 'current' block")
@@ -96,20 +95,13 @@ def auto_conditions(query: str, prefer_country_code: str | None = None,
     except Exception:
         pass
     code = c.get("weather_code")
-    out = {
+    return {
         "weather_condition": WMO_CONDITION.get(code, "Fair" if code == 0 else "Cloudy"),
-        "humidity_pct": c.get("relative_humidity_2m"),
+        "temperature_f": c.get("temperature_2m"), "wind_speed_mph": c.get("wind_speed_10m"),
+        "precipitation_in": c.get("precipitation"), "pressure_in": c.get("pressure_msl", 0) * 0.02953,
+        "visibility_mi": (c.get("visibility") or 0) / 1609.34, "humidity_pct": c.get("relative_humidity_2m"),
+        "state": US_STATE_ABBR.get(place["admin1"] or ""),
         "hour": now.hour, "day_of_week": now.weekday(), "month": now.month,
         "location_label": ", ".join(x for x in [place["name"], place["admin1"], place["country"]] if x),
         "_source": "Open-Meteo live current-conditions (fetched just now)", "_fetched_at_local": now.isoformat(),
     }
-    if is_us:
-        out.update(temperature_f=c.get("temperature_2m"), wind_speed_mph=c.get("wind_speed_10m"),
-                   precipitation_in=c.get("precipitation"), pressure_in=c.get("pressure_msl", 0) * 0.02953,
-                   visibility_mi=(c.get("visibility") or 0) / 1609.34,
-                   state=US_STATE_ABBR.get(place["admin1"] or ""))
-    else:
-        out.update(temperature_c=c.get("temperature_2m"), wind_speed_kmh=c.get("wind_speed_10m"),
-                   precipitation_mm=c.get("precipitation"), pressure_hpa=c.get("pressure_msl"),
-                   visibility_km=(c.get("visibility") or 0) / 1000)
-    return out

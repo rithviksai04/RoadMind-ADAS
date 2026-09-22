@@ -112,14 +112,14 @@ def test_explicit_imperial_wins_over_metric_if_both_given():
                 [{"feature": "temperature_f", "value": 100}]))
 
 
-def test_location_label_not_sent_as_us_state():
-    """A non-US location_label must not leak into the `state` feature (Indian states aren't in training data)."""
-    r = explain_prediction({"state": None, "location_label": "Hyderabad, Telangana, India", "hour": 12})
+def test_unrecognized_location_label_not_sent_as_us_state():
+    """A location_label for an unrecognized state must not leak into the `state` feature."""
+    r = explain_prediction({"state": None, "location_label": "Somewhere, Nowhereland", "hour": 12})
     assert not any(f["feature"] == "state" for f in r["top_factors"])
-    assert "Location:" in r["notes"] and "Telangana" in r["notes"]
-    assert "never seen Indian roads" in r["notes"]
+    assert "Location:" in r["notes"] and "Nowhereland" in r["notes"]
+    assert "No `state`/location signal was used" in r["notes"]
 
 
-def test_us_state_location_label_gets_no_india_warning():
+def test_us_state_location_label_gets_no_unrecognized_warning():
     r = explain_prediction({"state": "CA", "location_label": "Los Angeles, California, USA"})
-    assert "never seen Indian roads" not in r["notes"]
+    assert "No `state`/location signal was used" not in r["notes"]

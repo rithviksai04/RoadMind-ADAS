@@ -105,6 +105,7 @@ def _to_raw(d: dict) -> pd.DataFrame:
         ts = pd.Timestamp(d["start_time"])
     else:  # build a timestamp from hour/day_of_week/month (year irrelevant: not a feature)
         month, hour, dow = int(d.get("month", 6)), int(d.get("hour", 12)), int(d.get("day_of_week", 2))
+        month = ((month - 1) % 12) + 1  # out-of-range month (e.g. 0, -1, 13) wraps rather than crashing dt.date()
         day = dt.date(2022, month, 1)
         day += dt.timedelta(days=(dow - day.weekday()) % 7)
         ts = pd.Timestamp(day) + pd.Timedelta(hours=hour)
@@ -149,9 +150,9 @@ def explain_prediction(input_dict: dict, top_k: int = 4) -> dict:
 
     Also accepts metric units, converted internally (an explicit imperial value always wins):
     temperature_c, wind_speed_kmh, precipitation_mm, visibility_km, pressure_hpa.
-    `location_label` (e.g. "Hyderabad, Telangana, India") is display-only - it is NEVER sent to the model as
-    `state`, because the model was trained only on US state codes; leave `state` unset for a non-US location
-    so it correctly contributes nothing rather than being silently misread as an unknown US state.
+    `location_label` (e.g. "Austin, Texas, United States") is display-only - it is NEVER sent to the model as
+    `state`; leave `state` unset if it isn't a recognized US state code, so it correctly contributes nothing
+    rather than being silently misread as an unknown US state.
 
     Returns {risk_level, probability, top_factors, suggested_message, ...}."""
     metric_display = any(k in input_dict for k in UNIT_CONVERSIONS) if "metric" not in input_dict else input_dict.pop("metric")
@@ -184,12 +185,11 @@ def explain_prediction(input_dict: dict, top_k: int = 4) -> dict:
     msg = f"{level.upper()} RISK\n{HEADLINE[level]}\nReasons: {reasons}\nSuggested response: {RESPONSE[level]}"
     is_us_state = input_dict.get("state") in US_STATE_CODES
     notes = ("Estimates P(high delay-impact | an accident occurs under these conditions), not P(accident). "
-             "Decision-support only.")
-    if location_label and not is_us_state:
-        notes += (f" Location: {location_label}. WARNING: the underlying model is trained only on 2016-2023 US "
-                  "accident data; it has never seen Indian roads, monsoons, or traffic patterns. Weather/time/"
-                  "road-feature effects are applied as-is (an untested extrapolation) and no `state`/location "
-                  "signal is used at all for a non-US place. Treat this output as illustrative only.")
+             "Decision-support only. Trained on 2016-2023 US accident data.")
+    if location_label:
+        notes += f" Location: {location_label}."
+        if not is_us_state:
+            notes += " No `state`/location signal was used, since this isn't a recognized US state."
     return {"risk_level": level, "probability": round(p, 4), "top_factors": factors,
             "suggested_message": msg, "location_label": location_label,
             "unprovided_inputs_shap_total": round(sum(unprovided.values()), 4),
