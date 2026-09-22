@@ -1,11 +1,16 @@
 // Single point of contact with the backend (backend/main.py, a thin FastAPI wrapper around the real
 // trained model). Set NEXT_PUBLIC_USE_MOCK=true in .env.local to render against lib/mock.ts instead -
 // that is the ONLY line that needs to change to go from mock to live, and back.
+//
+// API_BASE defaults to "" (same-origin, relative /api/... requests): next.config.ts rewrites those to
+// the FastAPI backend server-side, so the browser only ever talks to one localhost URL and there's no
+// CORS involved. Set NEXT_PUBLIC_API_BASE_URL to an absolute URL only if you need to call the backend
+// directly from the browser instead (e.g. a different deployment topology).
 
 import { MOCK_METRICS, MOCK_PREDICTION, MOCK_STATES } from "./mock";
 import type { ConditionInput, LiveWeatherResponse, MetricsResponse, PredictionResponse, StatesResponse } from "./types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true"; // <- the one-line mock/live swap
 
 async function json<T>(path: string, init?: RequestInit): Promise<T> {

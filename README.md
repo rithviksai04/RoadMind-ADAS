@@ -110,11 +110,16 @@ About/Limitations tab. Built with Next.js (App Router, TypeScript), Tailwind CSS
 and Framer Motion, in the brand palette from the project proposal, dark mode by default.
 
 ```bash
-./run_dev.sh                       # backend (:8000) + frontend (:3000) together
+./run_dev.sh                       # starts both; open ONLY http://localhost:3000
 # or separately:
 .venv/bin/uvicorn backend.main:app --reload --port 8000
 cd frontend && npm install && npm run dev
 ```
+
+Both processes run (backend on :8000, frontend on :3000), but there's a single URL to visit:
+**http://localhost:3000**. Next.js proxies every `/api/...` call to the FastAPI backend server-side
+(`frontend/next.config.ts` rewrites), so the browser never talks to port 8000 directly and there's no CORS
+involved - port 8000 stays open only for the backend's own `/docs` and direct API testing.
 
 Every number the dashboard shows is real - the same `explain_prediction()` and `reports/metrics.json` used
 everywhere else in this project, served through `backend/main.py` (see `backend/README.md`). The frontend
