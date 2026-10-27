@@ -106,7 +106,7 @@ Metric units are also accepted directly: `temperature_c`, `wind_speed_kmh`, `pre
 
 A production-styled two-panel dashboard - condition inputs on the left, an animated risk gauge, SHAP bar
 chart and driver-warning card on the right, plus a Model Transparency tab (real held-out metrics) and an
-About/Limitations tab. Built with Next.js (App Router, TypeScript), Tailwind CSS, Radix primitives, Recharts
+About/Limitations tab. Built with Next.js (App Router, TypeScript), Tailwind CSS, Radix primitives
 and Framer Motion, in the brand palette from the project proposal, dark mode by default.
 
 ```bash
@@ -125,6 +125,20 @@ Every number the dashboard shows is real - the same `explain_prediction()` and `
 everywhere else in this project, served through `backend/main.py` (see `backend/README.md`). The frontend
 build is mock-data-capable (`frontend/src/lib/mock.ts`, toggled by `NEXT_PUBLIC_USE_MOCK` in `.env.local`)
 for working on the UI without the backend running, but ships wired to the live API by default.
+
+**Using the dashboard**
+- Pick a quick scenario or set conditions (state, weather, time, month, nearby road features), then press **Assess risk**.
+  With **Update live** on (the default), the meter re-scores automatically as you change any input after that.
+- **Live weather** fills in the current conditions and local time for the selected state (Open-Meteo, no API key).
+- Humidity and pressure are optional: left on *Auto*, the model imputes the training median.
+- The risk meter gives each tier (Low / Medium / High) an equal third of the dial, split at the model's real tercile
+  thresholds. The thresholds are low (~11% / ~23%), so a linear 0-100% dial would cram Low and Medium into
+  its first quarter.
+
+**Model files are not in git.** `models/*.joblib` is git-ignored, so a fresh clone has no trained model until you run the
+pipeline above. Without one, the dashboard and `/api/predict` show a clear "model not found" message (HTTP 503), and
+`/api/health` reports `model_loaded: false`. To serve a model from elsewhere, set `ROADMIND_MODEL_PATH=/path/to/bundle.joblib`;
+the test suite honours the same variable.
 
 ## Project layout
 ```

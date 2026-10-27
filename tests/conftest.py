@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 import pytest
 
 from roadmind.config import MODELS_DIR, PROCESSED_DIR, REPORTS_DIR
@@ -10,7 +13,7 @@ def pytest_configure(config):
 
 
 def pytest_collection_modifyitems(config, items):
-    have_model = (MODELS_DIR / "stratified_xgboost.joblib").exists()
+    have_model = Path(os.environ.get("ROADMIND_MODEL_PATH", MODELS_DIR / "stratified_xgboost.joblib")).exists()
     have_data = (PROCESSED_DIR / "features.parquet").exists() and (REPORTS_DIR / "metrics.json").exists()
     for it in items:
         if "needs_model" in it.keywords and not have_model:

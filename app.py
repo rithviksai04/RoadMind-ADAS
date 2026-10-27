@@ -2,7 +2,7 @@
 import pandas as pd
 import streamlit as st
 
-from roadmind.explain import explain_prediction
+from roadmind.explain import ModelNotAvailableError, explain_prediction
 from roadmind.weather import STATE_CAPITALS, US_STATE_ABBR, WeatherLookupError, auto_conditions
 
 st.set_page_config(page_title="RoadMind", page_icon="🚗")
@@ -48,7 +48,12 @@ with st.sidebar:
         st.caption("Values below are pre-filled from live weather - adjust any of them before running.")
 
     def d(key, fallback):
-        return live.get(key, fallback) if (is_auto and live) else fallback
+        """Live value if present, else fallback. Live readings can be missing (None) - never pass those on."""
+        v = live.get(key) if (is_auto and live) else None
+        return fallback if v is None else v
+
+    def clamp(v, lo, hi):
+        return min(hi, max(lo, v))
 
     weather_default = d("weather_condition", "Fair")
     weather = st.selectbox("Weather", WEATHER, index=WEATHER.index(weather_default) if weather_default in WEATHER else 0)
@@ -62,24 +67,29 @@ with st.sidebar:
     else:
         state_name = st.selectbox("State", STATE_NAMES, index=STATE_NAMES.index("California"))
         state = US_STATE_ABBR[state_name]
-    temp = st.slider("Temperature (F)", -20, 120, round(d("temperature_f", 65)))
-    vis = st.slider("Visibility (mi)", 0.0, 10.0, min(10.0, round(d("visibility_mi", 10.0), 1)), 0.5)
-    wind = st.slider("Wind speed (mph)", 0, 60, min(60, round(d("wind_speed_mph", 5))))
-    precip = st.slider("Precipitation (in/hr)", 0.0, 1.0, min(1.0, round(d("precipitation_in", 0.0), 2)), 0.01)
-    pressure = st.slider("Pressure (in)", 27.0, 31.0, min(31.0, max(27.0, round(d("pressure_in", 29.9), 2))), 0.05)
-    humidity = st.slider("Humidity (%)", 0, 100, round(d("humidity_pct", 60)))
+    temp = st.slider("Temperature (F)", -20, 120, clamp(round(d("temperature_f", 65)), -20, 120))
+    vis = st.slider("Visibility (mi)", 0.0, 10.0, clamp(round(d("visibility_mi", 10.0), 1), 0.0, 10.0), 0.5)
+    wind = st.slider("Wind speed (mph)", 0, 60, clamp(round(d("wind_speed_mph", 5)), 0, 60))
+    precip = st.slider("Precipitation (in/hr)", 0.0, 1.0, clamp(round(d("precipitation_in", 0.0), 2), 0.0, 1.0), 0.01)
+    pressure = st.slider("Pressure (in)", 27.0, 31.0, clamp(round(d("pressure_in", 29.9), 2), 27.0, 31.0), 0.05)
+    humidity = st.slider("Humidity (%)", 0, 100, clamp(round(d("humidity_pct", 60)), 0, 100))
     hour = st.slider("Hour of day (local)", 0, 23, int(d("hour", 17)))
     dow = st.selectbox("Day of week", range(7), index=int(d("day_of_week", 2)), format_func=lambda i: DAYS[i])
     month = st.slider("Month", 1, 12, int(d("month", 6)))
     st.subheader("Road features nearby")
     st.caption("Not available from a weather API - set manually.")
     poi = {k: st.checkbox(k.replace("_", " ").title()) for k in
-           ["junction", "traffic_signal", "crossing", "stop", "railway", "roundabout"]}
+           ["junction", "traffic_signal", "crossing", "stop", "give_way", "railway", "roundabout", "station",
+            "amenity", "bump", "traffic_calming", "no_exit"]}
 
-res = explain_prediction({"weather_condition": weather, "temperature_f": temp, "visibility_mi": vis,
+try:
+    res = explain_prediction({"weather_condition": weather, "temperature_f": temp, "visibility_mi": vis,
                           "wind_speed_mph": wind, "precipitation_in": precip, "humidity_pct": humidity,
                           "pressure_in": pressure, "hour": hour, "day_of_week": dow, "month": month,
                           "state": state, **poi}, top_k=6)
+except ModelNotAvailableError as e:
+    st.error(f"No trained model yet: {e}")
+    st.stop()
 
 color = {"High": "red", "Medium": "orange", "Low": "green"}[res["risk_level"]]
 st.markdown(f"## :{color}[{res['risk_level'].upper()} RISK]")

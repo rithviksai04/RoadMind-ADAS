@@ -71,3 +71,15 @@ def test_state_capitals_cover_exactly_the_same_states_as_state_abbr():
     assert set(STATE_CAPITALS) == set(US_STATE_ABBR)
     for name, query in STATE_CAPITALS.items():
         assert query.endswith(name)
+
+
+def test_missing_visibility_and_pressure_stay_missing():
+    """A missing reading must not become 0 visibility (= dense fog) or crash on a None pressure."""
+    cur = {"current": {**FAKE_CURRENT["current"], "visibility": None, "pressure_msl": None, "weather_code": None}}
+    d = auto_conditions("Austin, Texas", geocode_fn=lambda q, c: AUSTIN_GEOCODE, forecast_fn=lambda lat, lon: cur)
+    assert d["visibility_mi"] is None and d["pressure_in"] is None and d["weather_condition"] is None
+
+
+def test_visibility_capped_like_station_reports():
+    d = auto_conditions("Austin, Texas", geocode_fn=lambda q, c: AUSTIN_GEOCODE, forecast_fn=lambda lat, lon: FAKE_CURRENT)
+    assert d["visibility_mi"] == 10.0  # 26 km raw

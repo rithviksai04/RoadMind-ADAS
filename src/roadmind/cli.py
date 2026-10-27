@@ -2,7 +2,7 @@
 python -m roadmind.cli --weather Fog --visibility 0.5 --hour 23 --state TX --temp 45 --precip 0.05"""
 import argparse
 
-from roadmind.explain import explain_prediction
+from roadmind.explain import ModelNotAvailableError, explain_prediction
 from roadmind.weather import WeatherLookupError, auto_conditions
 
 ap = argparse.ArgumentParser(description="RoadMind risk co-pilot")
@@ -35,7 +35,10 @@ if a.dow is not None: inputs["day_of_week"] = a.dow
 if a.month is not None: inputs["month"] = a.month
 inputs.setdefault("hour", 12); inputs.setdefault("day_of_week", 2); inputs.setdefault("month", 6)
 inputs.update(**{p: True for p in a.poi})
-r = explain_prediction(inputs, top_k=6)
+try:
+    r = explain_prediction(inputs, top_k=6)
+except ModelNotAvailableError as e:
+    raise SystemExit(f"error: {e}")
 print(r["suggested_message"])
 print(f"\nModel score: {r['probability']} (tier thresholds come from training data)")
 print("Top SHAP factors (log-odds):")
