@@ -52,4 +52,5 @@ export const MOCK_METRICS: MetricsResponse = {
 export const MOCK_STATES: StatesResponse = {
   states: ["Alabama", "Alaska", "Arizona", "California", "Texas", "New York"],
   capitals: { Texas: "Austin, Texas", California: "Sacramento, California" },
+  abbr: { Alabama: "AL", Alaska: "AK", Arizona: "AZ", California: "CA", Texas: "TX", "New York": "NY" },
 };

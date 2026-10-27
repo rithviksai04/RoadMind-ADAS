@@ -17,3 +17,5 @@ starlette==1.6.0
 streamlit==1.64.0
 uvicorn==0.53.0
 xgboost==3.4.1
+httpx2
+pytest

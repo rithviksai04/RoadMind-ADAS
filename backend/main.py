@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from roadmind.explain import explain_prediction, get_thresholds  # noqa: E402
+from roadmind.explain import MODEL_PATH, ModelNotAvailableError, explain_prediction, get_thresholds  # noqa: E402
 from roadmind.weather import STATE_CAPITALS, US_STATE_ABBR, WeatherLookupError, auto_conditions  # noqa: E402
 
 app = FastAPI(title="RoadMind API", version="1.0.0",
@@ -34,9 +34,9 @@ class ConditionInput(BaseModel):
     precipitation_in: Optional[float] = None
     humidity_pct: Optional[float] = None
     pressure_in: Optional[float] = None
-    hour: Optional[int] = None
-    day_of_week: Optional[int] = Field(None, description="0=Mon ... 6=Sun")
-    month: Optional[int] = None
+    hour: Optional[int] = Field(None, ge=0, le=23)
+    day_of_week: Optional[int] = Field(None, ge=0, le=6, description="0=Mon ... 6=Sun")
+    month: Optional[int] = Field(None, ge=1, le=12)
     state: Optional[str] = Field(None, description="2-letter US state code, e.g. 'CA'")
     junction: bool = False
     traffic_signal: bool = False
@@ -82,27 +82,27 @@ class PredictionResponse(BaseModel):
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "model_loaded": MODEL_PATH.exists()}
 
 
 @app.post("/api/predict", response_model=PredictionResponse)
 def predict(cond: ConditionInput):
     payload = cond.model_dump(exclude_none=True)
+    if "state" in payload:
+        payload["state"] = payload["state"].strip().upper()
     try:
         r = explain_prediction(payload, top_k=8)
+    except ModelNotAvailableError as e:
+        raise HTTPException(status_code=503, detail=str(e)) from e
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"prediction failed: {e}") from e
     factors = [ShapFactor(feature=f["description"], contribution=f["shap_log_odds"], direction=f["direction"])
-              for f in r["top_factors"]]
-    # Reuse the message's own "Reasons:" line rather than recomputing - it already excludes absent road
-    # features (e.g. "No crossing nearby" is never cited as a positive reason) and un-supplied inputs.
-    msg_lines = r["suggested_message"].split("\n")
-    reasons_line = msg_lines[2].removeprefix("Reasons: ")
-    reasons = [r.strip() for r in reasons_line.split(" • ")] if reasons_line != "No single condition stands out" else []
+               for f in r["top_factors"]]
+    w = r["warning"]
     return PredictionResponse(
         risk_probability=r["probability"], risk_level=r["risk_level"].upper(), shap_factors=factors,
-        warning=WarningPayload(headline=msg_lines[1], reasons=reasons or ["No single condition stands out"],
-                        suggested_response=msg_lines[3].removeprefix("Suggested response: ")),
+        warning=WarningPayload(headline=w["headline"], reasons=w["reasons"] or ["No single condition stands out"],
+                               suggested_response=w["suggested_response"]),
         model=ModelInfo(name="XGBoost", version="stratified-v1", split="stratified 80/20 (see reports/evaluation.md)"),
         notes=r["notes"], thresholds=get_thresholds(),
     )
@@ -131,7 +131,7 @@ def metrics():
 @app.get("/api/states")
 def states():
     """Full US state names for the UI's search/select (never bare 2-letter codes)."""
-    return {"states": sorted(US_STATE_ABBR), "capitals": STATE_CAPITALS}
+    return {"states": sorted(US_STATE_ABBR), "capitals": STATE_CAPITALS, "abbr": US_STATE_ABBR}
 
 
 class LiveWeatherRequest(BaseModel):
@@ -144,4 +144,5 @@ def live_weather(req: LiveWeatherRequest):
         d = auto_conditions(req.place, prefer_country_code="US")
     except WeatherLookupError as e:
         raise HTTPException(status_code=502, detail=str(e)) from e
-    return {k: v for k, v in d.items() if not k.startswith("_")} | {"fetched_at_local": d["_fetched_at_local"]}
+    # Drop internal keys and missing readings so the UI never merges nulls over the user's inputs.
+    return {k: v for k, v in d.items() if not k.startswith("_") and v is not None} | {"fetched_at_local": d["_fetched_at_local"]}

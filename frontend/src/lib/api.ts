@@ -14,13 +14,24 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true"; // <- the one-line mock/live swap
 
 async function json<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    headers: { "Content-Type": "application/json", ...init?.headers },
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      ...init,
+      headers: { "Content-Type": "application/json", ...init?.headers },
+    });
+  } catch {
+    throw new Error("Can't reach the RoadMind server. Check that the app is running (./run_dev.sh).");
+  }
   if (!res.ok) {
-    const detail = await res.json().catch(() => ({}));
-    throw new Error(detail.detail ?? `${res.status} ${res.statusText}`);
+    const body = await res.json().catch(() => null);
+    const detail = body?.detail;
+    // FastAPI validation errors arrive as an array of {loc, msg}.
+    if (Array.isArray(detail)) throw new Error(detail.map((d) => `${d.loc?.at(-1) ?? "input"}: ${d.msg}`).join("; "));
+    if (typeof detail === "string") throw new Error(detail);
+    // The Next.js proxy answers 500 with no JSON body when the FastAPI backend isn't running.
+    if (res.status >= 500) throw new Error("The prediction backend isn't responding. Start it with ./run_dev.sh (FastAPI on :8000).");
+    throw new Error(`${res.status} ${res.statusText}`);
   }
   return res.json();
 }

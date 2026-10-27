@@ -118,11 +118,18 @@ def auto_conditions(query: str, prefer_country_code: str | None = "US",
     except Exception:
         pass
     code = c.get("weather_code")
+    pressure, vis = c.get("pressure_msl"), c.get("visibility")
     return {
-        "weather_condition": WMO_CONDITION.get(code, "Fair" if code == 0 else "Cloudy"),
+        # Unknown code -> None (imputed like a missing training value), not a guessed "Cloudy".
+        "weather_condition": WMO_CONDITION.get(code) if code is not None else None,
         "temperature_f": c.get("temperature_2m"), "wind_speed_mph": c.get("wind_speed_10m"),
-        "precipitation_in": c.get("precipitation"), "pressure_in": c.get("pressure_msl", 0) * 0.02953,
-        "visibility_mi": (c.get("visibility") or 0) / 1609.34, "humidity_pct": c.get("relative_humidity_2m"),
+        "precipitation_in": c.get("precipitation"),
+        # Missing readings stay None: 0 visibility would mean dense fog, 0 pressure is impossible.
+        "pressure_in": round(pressure * 0.02953, 2) if pressure is not None else None,
+        # US station reports (the training data) top out at 10 mi; Open-Meteo goes far higher, and >20 mi
+        # would be discarded as implausible by features.engineer() and replaced with the median.
+        "visibility_mi": min(10.0, round(vis / 1609.34, 1)) if vis is not None else None,
+        "humidity_pct": c.get("relative_humidity_2m"),
         "state": US_STATE_ABBR.get(place["admin1"] or ""),
         "hour": now.hour, "day_of_week": now.weekday(), "month": now.month,
         "location_label": ", ".join(x for x in [place["name"], place["admin1"], place["country"]] if x),

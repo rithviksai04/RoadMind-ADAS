@@ -81,35 +81,46 @@ export function ModelTransparencyPanel() {
             </div>
           )}
           {metrics && (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                    <th className="py-2 pr-4 font-medium">Model</th>
-                    <th className="py-2 pr-4 font-medium">ROC-AUC</th>
-                    <th className="py-2 pr-4 font-medium">PR-AUC</th>
-                    <th className="py-2 pr-4 font-medium">Accuracy</th>
-                    <th className="py-2 pr-4 font-medium">Precision</th>
-                    <th className="py-2 pr-4 font-medium">Recall (High)</th>
-                    <th className="py-2 pr-4 font-medium">F1</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.entries(metrics.models).map(([key, m]) => (
-                    <tr key={key} className="border-b border-border-subtle last:border-0">
-                      <td className="py-2.5 pr-4 font-medium text-foreground">{MODEL_LABEL[key] ?? key}</td>
-                      <td className="py-2.5 pr-4 tabular-nums">{m.roc_auc.toFixed(3)}</td>
-                      <td className="py-2.5 pr-4 tabular-nums">{m.pr_auc.toFixed(3)}</td>
-                      <td className="py-2.5 pr-4 tabular-nums">{m.accuracy.toFixed(3)}</td>
-                      <td className="py-2.5 pr-4 tabular-nums">{m.precision.toFixed(3)}</td>
-                      <td className="py-2.5 pr-4 tabular-nums font-medium text-accent">{m.recall.toFixed(3)}</td>
-                      <td className="py-2.5 pr-4 tabular-nums">{m.f1.toFixed(3)}</td>
-                    </tr>
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                {Object.entries(metrics.models)
+                  .sort(([, a], [, b]) => b.roc_auc - a.roc_auc)
+                  .map(([key, m], i) => (
+                    <div
+                      key={key}
+                      className={`rounded-lg border p-4 ${i === 0 ? "border-accent/60 bg-accent/5" : "border-border-subtle"}`}
+                    >
+                      <div className="mb-3 flex items-center justify-between">
+                        <span className="text-sm font-semibold text-foreground">{MODEL_LABEL[key] ?? key}</span>
+                        {i === 0 && (
+                          <span className="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent">
+                            Served
+                          </span>
+                        )}
+                      </div>
+                      <div className="space-y-2.5">
+                        <MetricBar label="ROC-AUC" value={m.roc_auc} floor={0.5} hint="Ranking quality. 0.5 = random, 1.0 = perfect." />
+                        <MetricBar label="Accuracy" value={m.accuracy} hint="Share of all test rows classified correctly at the High-tier cut-off." />
+                        <MetricBar label="Recall (High)" value={m.recall} hint="Share of real high-impact accidents flagged as High." />
+                        <MetricBar label="Precision" value={m.precision} hint="Share of High alerts that were really high-impact." />
+                        <MetricBar label="PR-AUC" value={m.pr_auc} floor={metrics.base_rate} hint={`Precision-recall area. Random = base rate (${(metrics.base_rate * 100).toFixed(1)}%).`} />
+                      </div>
+                      <div className="mt-4 border-t border-border-subtle pt-3">
+                        <p className="mb-1.5 text-[11px] text-muted-foreground">Observed high-impact rate per predicted tier</p>
+                        <div className="grid grid-cols-3 gap-1.5 text-center text-xs tabular-nums">
+                          {(["Low", "Medium", "High"] as const).map((t) => (
+                            <div key={t} className="rounded bg-muted px-1.5 py-1">
+                              <div className="text-[10px] text-muted-foreground">{t}</div>
+                              <div className="font-medium text-foreground">{(m.tiers[t] * 100).toFixed(1)}%</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
-              <p className="mt-3 text-xs text-muted-foreground">
-                These are modest, real numbers - not tuned to look better than they are. See{" "}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                These are modest, real held-out numbers, not tuned to look better than they are. See{" "}
                 <code className="rounded bg-muted px-1 py-0.5 font-mono">reports/evaluation.md</code> for the full write-up,
                 including the time-based stress test and known limitations.
               </p>
@@ -117,6 +128,29 @@ export function ModelTransparencyPanel() {
           )}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+/** A 0-1 metric drawn as a meter. `floor` marks the "no skill" baseline (e.g. 0.5 for ROC-AUC). */
+function MetricBar({ label, value, floor, hint }: { label: string; value: number; floor?: number; hint: string }) {
+  return (
+    <div title={hint}>
+      <div className="mb-1 flex items-baseline justify-between text-xs">
+        <span className="text-muted-foreground">{label}</span>
+        <span className="font-medium tabular-nums text-foreground">{value.toFixed(3)}</span>
+      </div>
+      <div className="relative h-1.5 overflow-hidden rounded-full bg-muted" role="meter" aria-label={label} aria-valuemin={0} aria-valuemax={1} aria-valuenow={Number(value.toFixed(3))}>
+        <motion.div
+          className="absolute inset-y-0 left-0 rounded-full bg-accent"
+          initial={{ width: 0 }}
+          animate={{ width: `${Math.min(1, Math.max(0, value)) * 100}%` }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        />
+        {floor !== undefined && (
+          <div className="absolute inset-y-0 w-0.5 bg-foreground/40" style={{ left: `${floor * 100}%` }} title="random baseline" />
+        )}
+      </div>
     </div>
   );
 }

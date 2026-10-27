@@ -78,6 +78,7 @@ export interface MetricsResponse {
 export interface StatesResponse {
   states: string[];
   capitals: Record<string, string>;
+  abbr?: Record<string, string>; // full name -> 2-letter code
 }
 
 export interface LiveWeatherResponse extends ConditionInput {

@@ -5,7 +5,9 @@ Uses the primary-split XGBoost model with shap.TreeExplainer. SHAP values are in
 "high delay impact (Severity 3-4)"; the one-hot columns of a feature are summed back into that feature.
 """
 import datetime as dt
+import os
 from functools import lru_cache
+from pathlib import Path
 
 import joblib
 import numpy as np
@@ -15,13 +17,22 @@ import shap
 from roadmind.config import MODELS_DIR, PROCESSED_DIR, REPORTS_DIR
 from roadmind.features import CATEGORICAL, FEATURES, TARGET, engineer
 from roadmind.preprocess import make_splits
+from roadmind.weather import US_STATE_ABBR
 
 FLAGS_POI = {"junction", "traffic_signal", "crossing", "stop", "give_way", "railway", "roundabout", "station",
              "amenity", "bump", "no_exit", "traffic_calming"}
 US_STATE_CODES = {"AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA",
                   "ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR",
                   "PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"}
-MODEL_PATH = MODELS_DIR / "stratified_xgboost.joblib"
+# Override with ROADMIND_MODEL_PATH to serve a different trained bundle.
+MODEL_PATH = Path(os.environ.get("ROADMIND_MODEL_PATH", MODELS_DIR / "stratified_xgboost.joblib"))
+
+
+class ModelNotAvailableError(RuntimeError):
+    """The trained model bundle has not been produced yet (models/*.joblib is git-ignored)."""
+
+_STATE_NAME = {code: name for name, code in US_STATE_ABBR.items()}
+
 
 # Driver-facing wording for a feature that pushes risk UP. value -> phrase (None = not noteworthy).
 def _phrase(feat: str, v, metric: bool = False) -> str | None:
@@ -53,7 +64,7 @@ def _phrase(feat: str, v, metric: bool = False) -> str | None:
         "is_windy": lambda x: "Windy conditions" if x else "Not windy",
         "weather_group": lambda x: f"Weather: {str(x).replace('_', '/')}",
         "road_surface": lambda x: f"Road surface likely {x} (derived estimate)",
-        "state": lambda x: f"Location (state {x})",
+        "state": lambda x: f"Location ({_STATE_NAME.get(str(x), f'state {x}')})",
     }
     if feat in P:
         return P[feat](v)
@@ -74,6 +85,10 @@ HEADLINE = {
 
 @lru_cache(maxsize=1)
 def _bundle():
+    if not MODEL_PATH.exists():
+        raise ModelNotAvailableError(
+            f"trained model not found at {MODEL_PATH}. Model files are not committed to git - run "
+            "`python -m roadmind.sample && python -m roadmind.preprocess && python -m roadmind.train` first.")
     b = joblib.load(MODEL_PATH)
     pipe = b["pipeline"]
     return b, pipe.named_steps["prep"], shap.TreeExplainer(pipe.named_steps["clf"])
@@ -161,6 +176,7 @@ def explain_prediction(input_dict: dict, top_k: int = 4) -> dict:
     rather than being silently misread as an unknown US state.
 
     Returns {risk_level, probability, top_factors, suggested_message, ...}."""
+    input_dict = dict(input_dict)  # never mutate the caller's dict
     metric_display = any(k in input_dict for k in UNIT_CONVERSIONS) if "metric" not in input_dict else input_dict.pop("metric")
     input_dict = _normalize_units(input_dict)
     location_label = input_dict.pop("location_label", None)
@@ -189,6 +205,7 @@ def explain_prediction(input_dict: dict, top_k: int = 4) -> dict:
     raising = [f["description"] for f in factors if f["shap_log_odds"] > 0 and f["provided"] and not absent_poi(f)]
     reasons = " • ".join(raising) if raising else "No single condition stands out"
     msg = f"{level.upper()} RISK\n{HEADLINE[level]}\nReasons: {reasons}\nSuggested response: {RESPONSE[level]}"
+    warning = {"headline": HEADLINE[level], "reasons": raising, "suggested_response": RESPONSE[level]}
     is_us_state = input_dict.get("state") in US_STATE_CODES
     notes = ("Estimates P(high delay-impact | an accident occurs under these conditions), not P(accident). "
              "Decision-support only. Trained on 2016-2023 US accident data.")
@@ -197,7 +214,7 @@ def explain_prediction(input_dict: dict, top_k: int = 4) -> dict:
         if not is_us_state:
             notes += " No `state`/location signal was used, since this isn't a recognized US state."
     return {"risk_level": level, "probability": round(p, 4), "top_factors": factors,
-            "suggested_message": msg, "location_label": location_label,
+            "suggested_message": msg, "warning": warning, "location_label": location_label,
             "unprovided_inputs_shap_total": round(sum(unprovided.values()), 4),
             "notes": notes}
 
